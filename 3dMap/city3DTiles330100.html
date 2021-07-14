@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+    <meta name="renderer" content="webkit|ie-comp|ie-stand" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>城市3D模型</title>
+    <script src="../Build/Cesium/Cesium.js"></script>
+    <style>
+        @import url(../Build/Cesium/Widgets/widgets.css);
+
+        html, body, #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .cesium-viewer-toolbar, /* 右上角按钮组 */
+        .cesium-viewer-animationContainer, /* 左下角动画控件 */
+        .cesium-viewer-timelineContainer, /* 时间线 */
+        .cesium-viewer-bottom /* logo信息 */ {
+            display: none;
+        }
+
+        .cesium-viewer-fullscreenContainer /* 全屏按钮 */ {
+            position: absolute;
+            top: -999em;
+        }
+    </style>
+
+ 
+</head>
+<body style="width:100%;height:100%;margin:0 0 0 0;padding:0 0 0 0;overflow:hidden;">
+    <div id="cesiumContainer">
+    </div>
+    <div id="div_caption" style="width:100%;height:25px;position:absolute; top:10px;">
+        <div style="height:24px;width:200px;overflow-x:visible;background-color:#000; text-align:center;filter:alpha(Opacity=30);-moz-opacity:0.3;opacity: 0.3;position:absolute; top:0px; left:0px;top:0;right:0;left:0;bottom:auto;margin:auto; ">
+            <div style="height:24px;width:200px;filter:alpha(Opacity=100);-moz-opacity:1;opacity: 1;position:absolute; top:0px; left:0px;">
+                <span id="sp_caption" style="text-align:center;color:#ffffff; "></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AJAX-->
+    <script>
+        var ajax = function (url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    //	if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && protocol == 'file:')) {
+                    if ((xhr.status >= 200 && xhr.status < 400)) {
+                        var response = xhr.responseText;
+                        callback(null, response);
+                    }
+                    else if (xhr.status == 511) {
+                    }
+                }
+            }
+            xhr.open('GET', url);
+            xhr.send()
+        }
+    </script>
+    <script>
+        var gCountyId = null;
+        var gCityId = null;
+        var gCity = null;
+        var gCounty = null;
+        var gCityDefs = [
+             {
+                 'cityId': 330100, 'cityName': '杭州', 'counties': [
+                		{ 'countyId': 330102, 'countyName': '上城', 'centerX': 120.168939735625, 'centerY': 30.2289292198354, 'minX': 120.129449, 'minY': 30.195863, 'maxX': 120.21006, 'maxY': 30.260964 }
+, { 'countyId': 330103, 'countyName': '下城', 'centerX': 120.175323003751, 'centerY': 30.3069506990341, 'minX': 120.149575, 'minY': 30.260316, 'maxX': 120.207409, 'maxY': 30.352438 }
+, { 'countyId': 330104, 'countyName': '江干', 'centerX': 120.292564035197, 'centerY': 30.312042402642, 'minX': 120.179535, 'minY': 30.232182, 'maxX': 120.409139, 'maxY': 30.392601 }
+, { 'countyId': 330105, 'countyName': '拱墅', 'centerX': 120.147627205722, 'centerY': 30.3410250569584, 'minX': 120.080323, 'minY': 30.275086, 'maxX': 120.211826, 'maxY': 30.401402 }
+, { 'countyId': 330106, 'countyName': '西湖', 'centerX': 120.077789130474, 'centerY': 30.2032906498516, 'minX': 119.98608, 'minY': 30.080428, 'maxX': 120.174344, 'maxY': 30.354251 }
+, { 'countyId': 330108, 'countyName': '滨江', 'centerX': 120.181292202833, 'centerY': 30.1840059998376, 'minX': 120.117909, 'minY': 30.140143, 'maxX': 120.231407, 'maxY': 30.238875 }
+, { 'countyId': 330109, 'countyName': '萧山', 'centerX': 120.376895716345, 'centerY': 30.1682661205854, 'minX': 120.073777, 'minY': 29.847782, 'maxX': 120.691048175393, 'maxY': 30.40085 }
+, { 'countyId': 330110, 'countyName': '余杭', 'centerX': 119.986774388498, 'centerY': 30.3845238069894, 'minX': 119.676262, 'minY': 30.1613, 'maxX': 120.340314, 'maxY': 30.568938 }
+, { 'countyId': 330111, 'countyName': '富阳', 'centerX': 119.83537503795, 'centerY': 29.9975299284161, 'minX': 119.431115, 'minY': 29.747075, 'maxX': 120.142133, 'maxY': 30.199508 }
+, { 'countyId': 330122, 'countyName': '桐庐', 'centerX': 119.549194418227, 'centerY': 29.832952902717, 'minX': 119.175419, 'minY': 29.590195, 'maxX': 119.969292, 'maxY': 30.091097 }
+, { 'countyId': 330127, 'countyName': '淳安', 'centerX': 118.883988727817, 'centerY': 29.6107346582221, 'minX': 118.339768, 'minY': 29.191559, 'maxX': 119.343144, 'maxY': 30.037659 }
+, { 'countyId': 330182, 'countyName': '建德', 'centerX': 119.36800354938, 'centerY': 29.4834818072369, 'minX': 118.895657, 'minY': 29.207827, 'maxX': 119.764366, 'maxY': 29.773255 }
+, { 'countyId': 330185, 'countyName': '临安', 'centerX': 119.338842509028, 'centerY': 30.2039845628466, 'minX': 118.840726, 'minY': 29.937127, 'maxX': 119.863209, 'maxY': 30.445895 }
+
+             ]
+             }
+
+        ];
+        function setViewPort() {
+ 
+           
+            if (gCounty == null) {
+                return;
+            }
+            //debugger;
+            //var initialPosition = Cesium.Cartesian3.fromDegrees(gCounty.centerX, gCounty.centerY, 600);
+            //var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(0, -8.34390550872461, 0);
+            //viewer.scene.camera.setView({
+            //    destination: initialPosition,
+            //    orientation: initialOrientation,
+            //    endTransform: Cesium.Matrix4.IDENTITY
+            //});
+            //debugger;
+            viewer.camera.flyTo({
+                //  destination: Cesium.Rectangle.fromDegrees(gCounty.minX, gCounty.minY, gCounty.maxX, gCounty.maxY)
+                destination: Cesium.Cartesian3.fromDegrees(gCounty.centerX, gCounty.minY, 1000.0),
+                orientation : {
+                heading : Cesium.Math.toRadians(0.0),
+                pitch : Cesium.Math.toRadians(-5.0),
+                roll : 0.0
+            }
+            });
+
+            var cap = document.getElementById('sp_caption');
+            if (cap == null) {
+                return;
+            }
+            cap.innerText = gCity.cityName + gCounty.countyName + "鸟瞰图";
+        }
+
+        function getQueryVariable(variable) {
+
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            var ret = null;
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    ret = pair[1];
+                    break;
+                }
+            }
+            return (ret);
+        }
+
+    </script>
+    <script type="text/javascript">
+        var locationPointEntity = null;
+        var GoogleMapImgLayer = null;
+        var viewer;
+        var setviewPorted = false;
+
+        var tileStyle = new Cesium.Cesium3DTileStyle({
+            color: 'rgb(222, 222, 245)',
+            /*color: {
+                conditions: [
+                    ['${height} >= 300', 'rgba(45, 0, 75, 0.5)'],
+                    ['${height} >= 200', 'rgb(102, 71, 151)'],
+                    ['${height} >= 100', 'rgb(170, 162, 204)'],
+                    ['${height} >= 50', 'rgb(224, 226, 238)'],
+                    ['${height} >= 25', 'rgb(252, 230, 200)'],
+                    ['${height} >= 10', 'rgb(248, 176, 87)'],
+                    ['${height} >= 5', 'rgb(198, 106, 11)'],
+                    ['true', 'rgb(127, 59, 8)']
+                ]
+            },
+            */
+            show: true,
+            backgroundEnabled:  false  
+           
+        }
+                    );
+
+        function loadTiles(tilesArray) {
+            
+            
+            for (var idx = 0; idx < tilesArray.length ; idx++) {
+                var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset(
+                                {
+                                    url:   tilesArray[idx],
+                                    shadows:  Cesium.ShadowMode.DISABLED  // Cesium.ShadowMode.ENABLED ,
+                                  /*  skipLevelOfDetail: true,
+                                    baseScreenSpaceError: 2048,
+                                    skipScreenSpaceErrorFactor: 16,
+                                    skipLevels: 1,
+                                    immediatelyLoadDesiredLevelOfDetail: false,
+                                    loadSiblings: false,
+                                    cullWithChildrenBounds: true,
+                                    dynamicScreenSpaceError: true,
+                                    dynamicScreenSpaceErrorDensity: 0.00278,
+                                    dynamicScreenSpaceErrorFactor: 4.0,
+                                    dynamicScreenSpaceErrorHeightFalloff: 0.25
+                                    */
+                                }
+                            ));
+                viewer.scene.primitives.add(tileset);
+                tileset.readyPromise.then(function (tileset) {
+                    viewer.scene.primitives.add(tileset);
+           //         tileset.style = tileStyle;
+                    if (!setviewPorted)
+                    {
+                   //     viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.0, 0.8, tileset.boundingSphere.radius * 2.0));
+                        setviewPorted = true;
+                    }
+                 //  
+                    //    viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 1.0));
+                }
+               ).otherwise(function (error) {
+                   console.log(error);
+               }
+                   );
+                
+
+              
+            }
+        
+         
+        }
+
+        viewer = new Cesium.Viewer('cesiumContainer', {
+            sceneMode: Cesium.SceneMode.COLUMBUS_VIEW,
+            animation: false,       //是否显示动画控件
+            homeButton: true,       //是否显示home键
+            //geocoder:false,         //是否显示地名查找控件        如果设置为true，则无法查询
+            baseLayerPicker: false, //是否显示图层选择控件
+            timeline: false,        //是否显示时间线控件
+            fullscreenButton: false/*true*/, //是否全屏显示
+            scene3DOnly: true,     //如果设置为true，则所有几何图形以3D模式绘制以节约GPU资源
+            infoBox: false,         //是否显示点击要素之后显示的信息
+            sceneModePicker: false/*true*/,  //是否显示投影方式控件  三维/二维
+            navigationInstructionsInitiallyVisible: false,
+            navigationHelpButton: false,     //是否显示帮助信息控件
+            selectionIndicator: false,       //是否显示指示器组件
+            sceneMode: Cesium.SceneMode.SCENE3D,
+            allowTextureFilterAnisotropic: false,
+            terrainShadows: Cesium.ShadowMode.DISABLED,
+            contextOptions: {
+                webgl: {
+                    alpha: true,
+                    antialias: true,
+                    preserveDrawingBuffer: true,
+                    failIfMajorPerformanceCaveat: false,
+                    depth: true,
+                    stencil: true,
+                    premultipliedAlpha: false,
+                    desynchronized: true
+
+                },
+            },
+            targetFrameRate: 24,
+            orderIndependentTranslucency: false,
+            clockViewModel: null,
+            automaticallyTrackDataSourceClocks:false
+        });
+        viewer.imageryLayers.removeAll();
+        viewer.scene.globe.enableLighting = false;
+
+        var utc=Cesium.JulianDate.fromDate(new Date("2017/10/25 0:00:00"));//UTC
+
+        viewer.clock.currentTime=Cesium.JulianDate.addHours(utc,8,new Cesium.JulianDate());//北京时间=UTC+8=GMT+8
+ 
+
+
+        GoogleMapImgLayer = new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url: "https://mt1.google.cn/vt/lyrs=s&hl=zh-CN&x={x}&y={y}&z={z}&s=Gali"    //谷歌影像
+        }));
+        viewer.imageryLayers.add(GoogleMapImgLayer);
+
+
+        viewer._cesiumWidget._creditContainer.style.display = "none";  //	去除版权信息
+
+        viewer.scene.globe.enableLighting = false;
+
+        viewer.scene.backgroundColor = Cesium.Color.TRANSPARENT;
+        viewer.scene.globe.baseColor = Cesium.Color.TRANSPARENT;
+    /*    
+        var tilesArray = ["/3dtiles/440100/tile/6/0/23.json"
+
+, "/3dtiles/440100/tile/6/0/24.json"
+, "/3dtiles/440100/tile/6/0/47.json"
+, "/3dtiles/440100/tile/6/0/48.json"
+, "/3dtiles/440100/tile/6/0/49.json"
+        ];
+
+         */
+  
+        gCountyId = getQueryVariable("countyId");
+        gCityId = Math.floor(gCountyId / 100) * 100;
+        
+          gCounty = null;
+          for (var idx = 0; idx < gCityDefs.length; idx++) {
+              if (gCityDefs[idx].cityId == gCityId) {
+                  gCity = gCityDefs[idx];
+                  break;
+              }
+          }
+
+          if (gCity != null) {
+              for (var idx = 0; idx < gCity.counties.length; idx++) {
+                  if (gCountyId == gCity.counties[idx].countyId) {
+                      gCounty = gCity.counties[idx];
+                      break;
+                  }
+              }
+          }
+        
+          ajax('/3dtiles/' + gCityId + '/' + gCountyId + '/catalog.json', function (err, respTxt) {
+            var tilesArray = JSON.parse(respTxt);
+            loadTiles(tilesArray);
+           
+        }
+        );
+        
+          setViewPort();
+       
+    </script>
+</body>
+</html>

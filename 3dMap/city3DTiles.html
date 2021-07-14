@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+    <meta name="renderer" content="webkit|ie-comp|ie-stand" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>城市3D模型</title>
+    <script src="../Build/Cesium/Cesium.js"></script>
+    <style>
+        @import url(../Build/Cesium/Widgets/widgets.css);
+
+        html, body, #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .cesium-viewer-toolbar, /* 右上角按钮组 */
+        .cesium-viewer-animationContainer, /* 左下角动画控件 */
+        .cesium-viewer-timelineContainer, /* 时间线 */
+        .cesium-viewer-bottom /* logo信息 */ {
+            display: none;
+        }
+
+        .cesium-viewer-fullscreenContainer /* 全屏按钮 */ {
+            position: absolute;
+            top: -999em;
+        }
+    </style>
+
+ 
+</head>
+<body style="width:100%;height:100%;margin:0 0 0 0;padding:0 0 0 0;overflow:hidden;">
+    <div id="cesiumContainer">
+    </div>
+    <div id="div_caption" style="width:100%;height:25px;position:absolute; top:10px;">
+        <div style="height:24px;width:200px;overflow-x:visible;background-color:#000; text-align:center;filter:alpha(Opacity=30);-moz-opacity:0.3;opacity: 0.3;position:absolute; top:0px; left:0px;top:0;right:0;left:0;bottom:auto;margin:auto; ">
+            <div style="height:24px;width:200px;filter:alpha(Opacity=100);-moz-opacity:1;opacity: 1;position:absolute; top:0px; left:0px;">
+                <span id="sp_caption" style="text-align:center;color:#ffffff; "></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AJAX-->
+    <script>
+        var ajax = function (url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    //	if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && protocol == 'file:')) {
+                    if ((xhr.status >= 200 && xhr.status < 400)) {
+                        var response = xhr.responseText;
+                        callback(null, response);
+                    }
+                    else if (xhr.status == 511) {
+                    }
+                }
+            }
+            xhr.open('GET', url);
+            xhr.send()
+        }
+    </script>
+    <script>
+        var gCountyId = null;
+        var gCityId = null;
+        var gCity = null;
+        var gCounty = null;
+        var gCityDefs = [
+             { 'cityId': 440100, 'cityName': '广州','counties':[ {  'countyId': 440103,'countyName': '荔湾', 'centerX': 113.222464132201, 'centerY': 23.0905917109659, 'minX': 113.171875, 'minY': 23.044113, 'maxX': 113.271947, 'maxY': 23.160469 }
+, {  'countyId': 440104, 'countyName': '越秀', 'centerX': 113.27596150153, 'centerY': 23.1357585947369, 'minX': 113.235108, 'minY': 23.10751, 'maxX': 113.317216, 'maxY': 23.172202 }
+, {  'countyId': 440105, 'countyName': '海珠', 'centerX': 113.32194125976, 'centerY': 23.084226644877, 'minX': 113.236299, 'minY': 23.045285, 'maxX': 113.414021, 'maxY': 23.11644 }
+, {  'countyId': 440106, 'countyName': '天河', 'centerX': 113.373685773924, 'centerY': 23.1626352535086, 'minX': 113.295136, 'minY': 23.101126, 'maxX': 113.446385, 'maxY': 23.248282 }
+, {  'countyId': 440111, 'countyName': '白云', 'centerX': 113.319378252697, 'centerY': 23.2910300398599, 'minX': 113.143303, 'minY': 23.141098, 'maxX': 113.504147, 'maxY': 23.431089 }
+, { 'countyId': 440112, 'countyName': '黄埔', 'centerX': 113.504011276947, 'centerY': 23.2194442186974, 'minX': 113.392456, 'minY': 23.033235, 'maxX': 113.598149, 'maxY': 23.424675 }
+, {   'countyId': 440113, 'countyName': '番禺', 'centerX': 113.404999793456, 'centerY': 22.931192931825, 'minX': 113.242768, 'minY': 22.740661, 'maxX': 113.562977, 'maxY': 23.080627 }
+, {  'countyId': 440114, 'countyName': '花都', 'centerX': 113.208266521773, 'centerY': 23.4431423228391, 'minX': 112.956856, 'minY': 23.251363, 'maxX': 113.468266, 'maxY': 23.614385 }
+, {   'countyId': 440115, 'countyName': '南沙', 'centerX': 113.560950381336, 'centerY': 22.7244107160685, 'minX': 113.446129, 'minY': 22.56265068, 'maxX': 113.6818161, 'maxY': 22.877614 }
+, {   'countyId': 440117, 'countyName': '从化', 'centerX': 113.672901665454, 'centerY': 23.676653126136, 'minX': 113.273125, 'minY': 23.370867, 'maxX': 114.054096, 'maxY': 23.932003 }
+, {   'countyId': 440118, 'countyName': '增城', 'centerX': 113.75610444127, 'centerY': 23.3431436442423, 'minX': 113.542557, 'minY': 23.086722, 'maxX': 113.993462, 'maxY': 23.618855 }]},
+
+, { 'cityId': 440200, 'cityName': '韶关','counties':[ { 'countyId': 440203, 'countyName': '武江', 'centerX': 113.367572519717, 'centerY': 24.7049550900506, 'minX': 113.108685, 'minY': 24.522555, 'maxX': 113.588635, 'maxY': 24.920281 }
+, {  'countyId': 440204, 'countyName': '浈江', 'centerX': 113.565491092374, 'centerY': 24.916079936569, 'minX': 113.433716, 'minY': 24.70792, 'maxX': 113.722222, 'maxY': 25.098723 }
+, { 'countyId': 440205, 'countyName': '曲江', 'centerX': 113.630317034408, 'centerY': 24.6487115366217, 'minX': 113.195565, 'minY': 24.45639, 'maxX': 113.97287, 'maxY': 24.863772 }
+, {  'countyId': 440222, 'countyName': '始兴', 'centerX': 114.103828476132, 'centerY': 24.8492851369021, 'minX': 113.877045, 'minY': 24.52211, 'maxX': 114.399037, 'maxY': 25.147185 }
+, {  'countyId': 440224, 'countyName': '仁化', 'centerX': 113.773716268541, 'centerY': 25.1451139327734, 'minX': 113.508743, 'minY': 24.8399, 'maxX': 114.040428, 'maxY': 25.455519 }
+, {   'countyId': 440229, 'countyName': '翁源', 'centerX': 114.018826896817, 'centerY': 24.423470337208, 'minX': 113.656873, 'minY': 24.132532, 'maxX': 114.309739, 'maxY': 24.670809 }
+, {  'countyId': 440232, 'countyName': '乳源', 'centerX': 113.163773721561, 'centerY': 24.8086195697472, 'minX': 112.872552, 'minY': 24.473651, 'maxX': 113.463777, 'maxY': 25.13306 }
+, {  'countyId': 440233, 'countyName': '新丰', 'centerX': 114.130221418228, 'centerY': 24.0667424243979, 'minX': 113.715146, 'minY': 23.89048, 'maxX': 114.594681, 'maxY': 24.273734 }
+, { 'countyId': 440281, 'countyName': '乐昌', 'centerX': 113.235062947072, 'centerY': 25.2410845649123, 'minX': 112.847122, 'minY': 24.943936, 'maxX': 113.578064, 'maxY': 25.519618 }
+, {  'countyId': 440282, 'countyName': '南雄', 'centerX': 114.375149119708, 'centerY': 25.1866247614223, 'minX': 113.926857, 'minY': 24.953575, 'maxX': 114.740479, 'maxY': 25.419538 }
+]
+}
+, {
+    'cityId': 440300, 'cityName': '深圳', 'counties': [{ 'countyId': 440303, 'countyName': '罗湖', 'centerX': 114.144701732617, 'centerY': 22.5787926283778, 'minX': 114.061047, 'minY': 22.5301758915454, 'maxX': 114.217453, 'maxY': 22.623034 }
+    , {   'countyId': 440304, 'countyName': '福田', 'centerX': 114.043800080095, 'centerY': 22.5487503283279, 'minX': 113.988125, 'minY': 22.50399208, 'maxX': 114.099879383057, 'maxY': 22.590076 }
+    , {   'countyId': 440305, 'countyName': '南山', 'centerX': 113.940779550839, 'centerY': 22.5594338900361, 'minX': 113.78151703, 'minY': 22.39957809, 'maxX': 114.019692, 'maxY': 22.655972 }
+    , {   'countyId': 440306, 'countyName': '宝安', 'centerX': 113.917493269258, 'centerY': 22.7051532376338, 'minX': 113.75514221, 'minY': 22.54347038, 'maxX': 114.112084, 'maxY': 22.854454 }
+    , {  'countyId': 440307, 'countyName': '龙岗', 'centerX': 114.338159657019, 'centerY': 22.6542087739148, 'minX': 114.045369, 'minY': 22.44985962, 'maxX': 114.62347412, 'maxY': 22.811951 }
+    , {  'countyId': 440308, 'countyName': '盐田', 'centerX': 114.267289547007, 'centerY': 22.6012635999002, 'minX': 114.192636, 'minY': 22.5439417654615, 'maxX': 114.348553, 'maxY': 22.660265 }
+
+    ]
+}
+, {
+    'cityId': 440400, 'cityName': '珠海', 'counties': [{ 'countyId': 440402, 'countyName': '香洲', 'centerX': 113.523522277064, 'centerY': 22.2644668093715, 'minX': 113.421012836575, 'minY': 22.05985069, 'maxX': 113.66041565, 'maxY': 22.4388821048466 }
+    , {   'countyId': 440403, 'countyName': '斗门', 'centerX': 113.234010867836, 'centerY': 22.2089614180615, 'minX': 113.10457611, 'minY': 21.999358, 'maxX': 113.408585, 'maxY': 22.414419 }
+    , { 'countyId': 440404, 'countyName': '金湾', 'centerX': 113.420847074621, 'centerY': 22.0524627614851, 'minX': 113.10263824, 'minY': 21.8204155, 'maxX': 114.31986237, 'maxY': 22.44096947 }
+    ]
+}
+, {
+    'cityId': 440500, 'cityName': '汕头', 'counties': [{ 'countyId': 440507, 'countyName': '龙湖', 'centerX': 116.7468825848, 'centerY': 23.4030900366462, 'minX': 116.694802, 'minY': 23.33319259825, 'maxX': 116.80918439937, 'maxY': 23.478053 }
+    , { 'countyId': 440511, 'countyName': '金平', 'centerX': 116.634765717446, 'centerY': 23.386530526427, 'minX': 116.562131, 'minY': 23.319272, 'maxX': 116.713338, 'maxY': 23.470729 }
+    , { 'countyId': 440512, 'countyName': '濠江', 'centerX': 116.698960593714, 'centerY': 23.2839998524209, 'minX': 116.610883, 'minY': 23.21125031, 'maxX': 116.80847168, 'maxY': 23.346678 }
+    , { 'countyId': 440513, 'countyName': '潮阳', 'centerX': 116.475759002362, 'centerY': 23.3443199439923, 'minX': 116.30703, 'minY': 23.16346931, 'maxX': 116.675121471517, 'maxY': 23.515555 }
+    , { 'countyId': 440514, 'countyName': '潮南', 'centerX': 116.40094922836, 'centerY': 23.1774975454995, 'minX': 116.245747, 'minY': 23.04335, 'maxX': 116.61597443, 'maxY': 23.308541 }
+    , { 'countyId': 440515, 'countyName': '澄海', 'centerX': 116.8051724204, 'centerY': 23.5294998449582, 'minX': 116.697285, 'minY': 23.39569664, 'maxX': 116.911728, 'maxY': 23.648673 }
+    , { 'countyId': 440523, 'countyName': '南澳', 'centerX': 117.061539328655, 'centerY': 23.4341692442106, 'minX': 116.91014099, 'minY': 23.21680641, 'maxX': 117.31069183, 'maxY': 23.48819542 }
+    ]
+}
+, {
+    'cityId': 440600, 'cityName': '佛山', 'counties': [{ 'countyId': 440604, 'countyName': '禅城', 'centerX': 113.058920712807, 'centerY': 23.0007831870102, 'minX': 112.973232, 'minY': 22.925067, 'maxX': 113.1638, 'maxY': 23.068842 }
+    , { 'countyId': 440605, 'countyName': '南海', 'centerX': 113.029641263777, 'centerY': 23.0748190368791, 'minX': 112.842038, 'minY': 22.80218, 'maxX': 113.252098, 'maxY': 23.312383 }
+    , { 'countyId': 440606, 'countyName': '顺德', 'centerX': 113.175172081953, 'centerY': 22.8448475934137, 'minX': 112.99426, 'minY': 22.666366, 'maxX': 113.386265, 'maxY': 23.011045 }
+    , { 'countyId': 440607, 'countyName': '三水', 'centerX': 112.893015415362, 'centerY': 23.2911186393852, 'minX': 112.758958, 'minY': 22.957701, 'maxX': 113.052311, 'maxY': 23.575467 }
+    , { 'countyId': 440608, 'countyName': '高明', 'centerX': 112.671530941171, 'centerY': 22.8212723188801, 'minX': 112.385236, 'minY': 22.646667, 'maxX': 112.917389, 'maxY': 23.017567 }
+    ]
+}
+
+, {
+    'cityId': 440700, 'cityName': '江门', 'counties': [{ 'countyId': 440703, 'countyName': '蓬江', 'centerX': 113.048973425074, 'centerY': 22.6567781377278, 'minX': 112.915025, 'minY': 22.553072, 'maxX': 113.162412, 'maxY': 22.809446 }
+    , { 'countyId': 440704, 'countyName': '江海', 'centerX': 113.123455505305, 'centerY': 22.551568091853, 'minX': 113.064343, 'minY': 22.491054, 'maxX': 113.18528, 'maxY': 22.608595 }
+    , { 'countyId': 440705, 'countyName': '新会', 'centerX': 113.022393498231, 'centerY': 22.3908563172166, 'minX': 112.790864, 'minY': 22.11208344, 'maxX': 113.258035, 'maxY': 22.581996 }
+    , { 'countyId': 440781, 'countyName': '台山', 'centerX': 112.700089991222, 'centerY': 22.0264398982121, 'minX': 112.288083, 'minY': 21.56652832, 'maxX': 113.04402924, 'maxY': 22.445263 }
+    , { 'countyId': 440783, 'countyName': '开平', 'centerX': 112.536381219601, 'centerY': 22.3706120255521, 'minX': 112.231141, 'minY': 21.972079, 'maxX': 112.810425, 'maxY': 22.655742 }
+    , { 'countyId': 440784, 'countyName': '鹤山', 'centerX': 112.789887620283, 'centerY': 22.6721664987198, 'minX': 112.472729, 'minY': 22.476214, 'maxX': 113.043579, 'maxY': 22.855781 }
+    , { 'countyId': 440785, 'countyName': '恩平', 'centerX': 112.275250309127, 'centerY': 22.2362181528605, 'minX': 111.998356, 'minY': 21.916475, 'maxX': 112.523144, 'maxY': 22.494616 }
+    ]
+}
+
+, { 'cityId': 440800, 'cityName': '湛江', 'counties': [{ 'countyId': 440802, 'countyName': '赤坎', 'centerX': 110.368721124993, 'centerY': 21.284015978823, 'minX': 110.321305, 'minY': 21.241075, 'maxX': 110.419991, 'maxY': 21.320468 }
+, { 'countyId': 440803, 'countyName': '霞山', 'centerX': 110.374834460178, 'centerY': 21.1996829659851, 'minX': 110.312951, 'minY': 21.1273216256177, 'maxX': 110.44208527, 'maxY': 21.2669 }
+, {   'countyId': 440804, 'countyName': '坡头', 'centerX': 110.502293046587, 'centerY': 21.2804530443804, 'minX': 110.379372, 'minY': 21.09013939, 'maxX': 110.639948996422, 'maxY': 21.452048 }
+, { 'countyId': 440811, 'countyName': '麻章', 'centerX': 110.322637290169, 'centerY': 21.0834494457626, 'minX': 110.119553, 'minY': 20.86515045, 'maxX': 110.63986206, 'maxY': 21.321383 }
+, {   'countyId': 440823, 'countyName': '遂溪', 'centerX': 110.028555746765, 'centerY': 21.2668919092439, 'minX': 109.67485809, 'minY': 20.997248, 'maxX': 110.415665, 'maxY': 21.509227 }
+, {  'countyId': 440825, 'countyName': '徐闻', 'centerX': 110.247814349085, 'centerY': 20.430102136877, 'minX': 109.85541534, 'minY': 20.22263908, 'maxX': 110.59152985, 'maxY': 20.71181107 }
+, {   'countyId': 440881, 'countyName': '廉江', 'centerX': 110.127184279077, 'centerY': 21.6396733244151, 'minX': 109.742047, 'minY': 21.406356, 'maxX': 110.509087, 'maxY': 21.920973 }
+, {  'countyId': 440882, 'countyName': '雷州', 'centerX': 110.002035964515, 'centerY': 20.7923259190051, 'minX': 109.66401672, 'minY': 20.4267962627668, 'maxX': 110.39457703, 'maxY': 21.181223 }
+, {   'countyId': 440883, 'countyName': '吴川', 'centerX': 110.697057916067, 'centerY': 21.4383422903028, 'minX': 110.476204, 'minY': 21.24875069, 'maxX': 110.96736145, 'maxY': 21.649471 }
+]
+}
+
+, {
+    'cityId': 440900, 'cityName': '茂名', 'counties': [{ 'countyId': 440902, 'countyName': '茂南', 'centerX': 110.857609143875, 'centerY': 21.6727398583648, 'minX': 110.732346, 'minY': 21.488663, 'maxX': 110.975689, 'maxY': 21.825688 }
+    , { 'countyId': 440904, 'countyName': '电白', 'centerX': 111.181290587114, 'centerY': 21.6616909494512, 'minX': 110.850357, 'minY': 21.37376022, 'maxX': 111.45069122, 'maxY': 21.991435 }
+    , { 'countyId': 440981, 'countyName': '高州', 'centerX': 110.964344961265, 'centerY': 22.0321150747202, 'minX': 110.614052, 'minY': 21.70994, 'maxX': 111.378876, 'maxY': 22.311347 }
+    , { 'countyId': 440982, 'countyName': '化州', 'centerX': 110.528655868647, 'centerY': 21.8417873975089, 'minX': 110.320816, 'minY': 21.474627, 'maxX': 110.749902, 'maxY': 22.212191 }
+    , { 'countyId': 440983, 'countyName': '信宜', 'centerX': 111.114108450883, 'centerY': 22.4286916226054, 'minX': 110.679077, 'minY': 22.190927, 'maxX': 111.678433, 'maxY': 22.707525 }
+    ]
+}
+
+, { 'cityId': 441200, 'cityName': '肇庆','counties': [{  'countyId': 441202, 'countyName': '端州', 'centerX': 112.466057103815, 'centerY': 23.0999214550273, 'minX': 112.394341, 'minY': 23.022865, 'maxX': 112.541272, 'maxY': 23.177354 }
+, {   'countyId': 441203, 'countyName': '鼎湖', 'centerX': 112.61347988641, 'centerY': 23.2057141676528, 'minX': 112.445389, 'minY': 23.092886, 'maxX': 112.77998, 'maxY': 23.315356 }
+, {   'countyId': 441204, 'countyName': '高要', 'centerX': 112.450125362445, 'centerY': 23.0788989689202, 'minX': 112.179787, 'minY': 22.772414, 'maxX': 112.82895, 'maxY': 23.436021 }
+, {  'countyId': 441223, 'countyName': '广宁', 'centerX': 112.431530880336, 'centerY': 23.6736058449715, 'minX': 112.057778, 'minY': 23.364331, 'maxX': 112.726411, 'maxY': 23.980907 }
+, {  'countyId': 441224, 'countyName': '怀集', 'centerX': 112.168438080919, 'centerY': 23.970539913512, 'minX': 111.866074, 'minY': 23.467919, 'maxX': 112.513471, 'maxY': 24.402676 }
+, {  'countyId': 441225, 'countyName': '封开', 'centerX': 111.711717586485, 'centerY': 23.5576574188186, 'minX': 111.356713, 'minY': 23.216547, 'maxX': 112.02028, 'maxY': 23.981278 }
+, {  'countyId': 441226, 'countyName': '德庆', 'centerX': 111.975559325288, 'centerY': 23.2729056026011, 'minX': 111.528622, 'minY': 23.073666, 'maxX': 112.265602, 'maxY': 23.507939 }
+, { 'countyId': 441284, 'countyName': '四会', 'centerX': 112.676084258841, 'centerY': 23.4278017706192, 'minX': 112.424839, 'minY': 23.193304, 'maxX': 112.876706, 'maxY': 23.69356 }
+]
+}
+
+, { 'cityId': 441300, 'cityName': '惠州', 'counties': [{ 'countyId': 441302, 'countyName': '惠城', 'centerX': 114.474730503851, 'centerY': 23.1597858905831, 'minX': 114.118347, 'minY': 22.916214, 'maxX': 114.787129, 'maxY': 23.41662 }
+, {   'countyId': 441303, 'countyName': '惠阳', 'centerX': 114.463977364338, 'centerY': 22.8704163071763, 'minX': 114.224477, 'minY': 22.40319443, 'maxX': 114.701607869645, 'maxY': 23.136667 }
+, {  'countyId': 441322, 'countyName': '博罗', 'centerX': 114.277046264117, 'centerY': 23.3489840526886, 'minX': 113.836041, 'minY': 23.048627, 'maxX': 114.695435, 'maxY': 23.708531 }
+, {  'countyId': 441323, 'countyName': '惠东', 'centerX': 114.944161758185, 'centerY': 23.0457573239114, 'minX': 114.5551, 'minY': 22.50541878, 'maxX': 115.41377, 'maxY': 23.388116 }
+, {   'countyId': 441324, 'countyName': '龙门', 'centerX': 114.125720528619, 'centerY': 23.6628308280837, 'minX': 113.807671, 'minY': 23.335331, 'maxX': 114.41731, 'maxY': 23.961998 }
+]
+}
+
+, { 'cityId': 441400, 'cityName': '梅州', 'counties': [{ 'countyId': 441402, 'countyName': '梅江', 'centerX': 116.104765237662, 'centerY': 24.2871154771824, 'minX': 115.989789, 'minY': 24.126252, 'maxX': 116.20356, 'maxY': 24.427756 }
+, {  'countyId': 441403, 'countyName': '梅县', 'centerX': 116.188257079555, 'centerY': 24.3679004314613, 'minX': 115.777539, 'minY': 23.91361, 'maxX': 116.554131, 'maxY': 24.806968 }
+, {  'countyId': 441422, 'countyName': '大埔', 'centerX': 116.653002255842, 'centerY': 24.3445116645107, 'minX': 116.309021, 'minY': 24.010143, 'maxX': 116.93697, 'maxY': 24.683138 }
+, {  'countyId': 441423, 'countyName': '丰顺', 'centerX': 116.280241085153, 'centerY': 23.9124640438815, 'minX': 115.845696, 'minY': 23.616641, 'maxX': 116.695904, 'maxY': 24.223596 }
+, {  'countyId': 441424, 'countyName': '五华', 'centerX': 115.630002461791, 'centerY': 23.7991572289933, 'minX': 115.310399, 'minY': 23.375941, 'maxX': 116.019207, 'maxY': 24.191022 }
+, {   'countyId': 441426, 'countyName': '平远', 'centerX': 115.921344933891, 'centerY': 24.692353742583, 'minX': 115.729355, 'minY': 24.400006, 'maxX': 116.118309, 'maxY': 24.940349 }
+, {  'countyId': 441427, 'countyName': '蕉岭', 'centerX': 116.18483568823, 'centerY': 24.6798863365455, 'minX': 116.017777, 'minY': 24.424765, 'maxX': 116.412914, 'maxY': 24.884243 }
+, { 'countyId': 441481, 'countyName': '兴宁', 'centerX': 115.742239627326, 'centerY': 24.2637959020244, 'minX': 115.479226, 'minY': 23.854002, 'maxX': 116.030129, 'maxY': 24.646622 }
+]
+}
+, {
+    'cityId': 441500, 'cityName': '汕尾', 'counties': [{ 'countyId': 441502, 'countyName': '城区', 'centerX': 115.41520167305, 'centerY': 22.7755906720175, 'minX': 115.2279129, 'minY': 22.62819481, 'maxX': 115.62152863, 'maxY': 22.914544 }
+    , {   'countyId': 441521, 'countyName': '海丰', 'centerX': 115.275071423007, 'centerY': 22.9659319405873, 'minX': 114.913788, 'minY': 22.70513916, 'maxX': 115.624152034463, 'maxY': 23.246871 }
+    , {  'countyId': 441523, 'countyName': '陆河', 'centerX': 115.617907888124, 'centerY': 23.2810453085032, 'minX': 115.411755, 'minY': 23.11397, 'maxX': 115.827538, 'maxY': 23.474882 }
+    , { 'countyId': 441581, 'countyName': '陆丰', 'centerX': 115.776719428342, 'centerY': 22.9642121609801, 'minX': 115.472878, 'minY': 22.74069595, 'maxX': 116.223221, 'maxY': 23.161943 }
+    ]
+}
+
+, {
+    'cityId': 441600, 'cityName': '河源', 'counties': [{ 'countyId': 441602, 'countyName': '源城', 'centerX': 114.643300240484, 'centerY': 23.6902738206103, 'minX': 114.52871, 'minY': 23.531407, 'maxX': 114.765267, 'maxY': 23.858456 }
+    , {  'countyId': 441621, 'countyName': '紫金', 'centerX': 115.053143610662, 'centerY': 23.5218099737785, 'minX': 114.628278, 'minY': 23.166925, 'maxX': 115.486627, 'maxY': 23.778189 }
+    , {  'countyId': 441622, 'countyName': '龙川', 'centerX': 115.350872492278, 'centerY': 24.3307247542513, 'minX': 115.053025, 'minY': 23.849095, 'maxX': 115.588345, 'maxY': 24.783693 }
+    , {  'countyId': 441623, 'countyName': '连平', 'centerX': 114.531671546091, 'centerY': 24.3372151651287, 'minX': 114.236844, 'minY': 24.097529, 'maxX': 114.932084, 'maxY': 24.593526 }
+    , {   'countyId': 441624, 'countyName': '和平', 'centerX': 115.000475344799, 'centerY': 24.4486037781485, 'minX': 114.687187, 'minY': 24.162451, 'maxX': 115.267602, 'maxY': 24.705352 }
+    , {  'countyId': 441625, 'countyName': '东源', 'centerX': 114.815463507498, 'centerY': 23.9295269156923, 'minX': 114.32351, 'minY': 23.671458, 'maxX': 115.373631, 'maxY': 24.260031 }
+    ]
+}
+
+, {
+    'cityId': 441700, 'cityName': '阳江', 'counties': [{ 'countyId': 441702, 'countyName': '江城', 'centerX': 111.919807328479, 'centerY': 21.7614037222646, 'minX': 111.786465137174, 'minY': 21.54624939, 'maxX': 112.19902802, 'maxY': 21.964193 }
+    , {  'countyId': 441704, 'countyName': '阳东', 'centerX': 112.054776636217, 'centerY': 21.9594195552368, 'minX': 111.707676, 'minY': 21.70180511, 'maxX': 112.364117, 'maxY': 22.263697 }
+    , {   'countyId': 441721, 'countyName': '阳西', 'centerX': 111.589099401306, 'centerY': 21.7177145174053, 'minX': 111.371769, 'minY': 21.47819519, 'maxX': 111.81707, 'maxY': 21.910937 }
+    , {  'countyId': 441781, 'countyName': '阳春', 'centerX': 111.682614229491, 'centerY': 22.2203182246783, 'minX': 111.277074, 'minY': 21.84374, 'maxX': 112.15672, 'maxY': 22.681323 }
+    ]
+}
+, {
+    'cityId': 441800, 'cityName': '清远', 'counties': [{ 'countyId': 441802, 'countyName': '清城', 'centerX': 113.102744102474, 'centerY': 23.6223436270783, 'minX': 112.883572, 'minY': 23.457083, 'maxX': 113.362938, 'maxY': 23.783248 }
+    , {  'countyId': 441803, 'countyName': '清新', 'centerX': 112.87490556521, 'centerY': 23.8956010855337, 'minX': 112.563111, 'minY': 23.548914, 'maxX': 113.350048, 'maxY': 24.318177 }
+    , {   'countyId': 441821, 'countyName': '佛冈', 'centerX': 113.554798963657, 'centerY': 23.8776042361892, 'minX': 113.293817, 'minY': 23.663894, 'maxX': 113.800355, 'maxY': 24.119294 }
+    , { 'countyId': 441823, 'countyName': '阳山', 'centerX': 112.66934097913, 'centerY': 24.5057165049197, 'minX': 112.366925, 'minY': 23.969612, 'maxX': 113.016824, 'maxY': 24.932575 }
+    , {  'countyId': 441825, 'countyName': '连山', 'centerX': 112.089058567019, 'centerY': 24.5114185650733, 'minX': 111.922314, 'minY': 24.182784, 'maxX': 112.270424, 'maxY': 24.853545 }
+    , { 'countyId': 441826, 'countyName': '连南', 'centerX': 112.251731743921, 'centerY': 24.5707429737623, 'minX': 112.042722, 'minY': 24.305279, 'maxX': 112.4837, 'maxY': 24.927726 }
+    , {  'countyId': 441881, 'countyName': '英德', 'centerX': 113.311477508359, 'centerY': 24.2221714351177, 'minX': 112.753793, 'minY': 23.845601, 'maxX': 113.911351, 'maxY': 24.552559 }
+    , {  'countyId': 441882, 'countyName': '连州', 'centerX': 112.447386859389, 'centerY': 24.9336236345187, 'minX': 112.114354, 'minY': 24.611467, 'maxX': 112.781406, 'maxY': 25.204691 }
+    ]
+}
+, {
+    'cityId': 441900, 'cityName': '东莞', 'counties': [{ 'countyId': 441901, 'countyName': '市辖区', 'centerX': 113.877473144746, 'centerY': 22.9360129467379, 'minX': 113.516552, 'minY': 22.658278, 'maxX': 114.255406, 'maxY': 23.145896 }
+    ]
+}
+, {
+    'cityId': 442000, 'cityName': '中山', 'counties': [{ 'countyId': 442001, 'countyName': '市辖区', 'centerX': 113.383756231754, 'centerY': 22.5211439714102, 'minX': 113.153107, 'minY': 22.19153023, 'maxX': 113.626582598943, 'maxY': 22.779889 }
+    ]
+}
+
+, {
+    'cityId': 445100, 'cityName': '潮州', 'counties': [{ 'countyId': 445102, 'countyName': '湘桥', 'centerX': 116.666923145585, 'centerY': 23.6967241869324, 'minX': 116.563366, 'minY': 23.628255, 'maxX': 116.769264, 'maxY': 23.771478 }
+    , {   'countyId': 445103, 'countyName': '潮安', 'centerX': 116.62277039294, 'centerY': 23.7223984195316, 'minX': 116.363362, 'minY': 23.42889, 'maxX': 116.839279, 'maxY': 24.002032 }
+    , {  'countyId': 445122, 'countyName': '饶平', 'centerX': 116.894792601856, 'centerY': 23.8607360891036, 'minX': 116.687921, 'minY': 23.49291611, 'maxX': 117.201382, 'maxY': 24.23575 }
+    ]
+}
+, {
+    'cityId': 445200, 'cityName': '揭阳', 'counties': [{ 'countyId': 445202, 'countyName': '榕城', 'centerX': 116.358093815684, 'centerY': 23.5259632874929, 'minX': 116.273174, 'minY': 23.449404, 'maxX': 116.45834, 'maxY': 23.598268 }
+    , {  'countyId': 445203, 'countyName': '揭东', 'centerX': 116.350656205967, 'centerY': 23.6030967374449, 'minX': 116.102116, 'minY': 23.382452, 'maxX': 116.631764, 'maxY': 23.775926 }
+    , {   'countyId': 445222, 'countyName': '揭西', 'centerX': 115.905617800518, 'centerY': 23.491252590101, 'minX': 115.608754, 'minY': 23.310873, 'maxX': 116.18448, 'maxY': 23.664857 }
+    , {   'countyId': 445224, 'countyName': '惠来', 'centerX': 116.213861973048, 'centerY': 23.0304603818107, 'minX': 115.916265, 'minY': 22.888566, 'maxX': 116.57097626, 'maxY': 23.185571 }
+    , { 'countyId': 445281, 'countyName': '普宁', 'centerX': 116.06700003193, 'centerY': 23.2854573210576, 'minX': 115.721272, 'minY': 23.098628, 'maxX': 116.352529, 'maxY': 23.530852 }
+    ]
+}
+, {
+    'cityId': 445300, 'cityName': '云浮', 'counties': [{ 'countyId': 445302, 'countyName': '云城', 'centerX': 112.15995261863, 'centerY': 22.9696179622996, 'minX': 111.95953, 'minY': 22.803357, 'maxX': 112.3219, 'maxY': 23.13273 }
+    , {  'countyId': 445303, 'countyName': '云安', 'centerX': 111.95142715364, 'centerY': 22.8440781745889, 'minX': 111.725396, 'minY': 22.572349, 'maxX': 112.167282, 'maxY': 23.132898 }
+    , { 'countyId': 445321, 'countyName': '新兴', 'centerX': 112.205785518806, 'centerY': 22.6236350317698, 'minX': 111.960957, 'minY': 22.378447, 'maxX': 112.516541, 'maxY': 22.844635 }
+    , { 'countyId': 445322, 'countyName': '郁南', 'centerX': 111.608301754029, 'centerY': 23.0402375109001, 'minX': 111.349522, 'minY': 22.796654, 'maxX': 111.903813, 'maxY': 23.326335 }
+    , {  'countyId': 445381, 'countyName': '罗定', 'centerX': 111.481628668039, 'centerY': 22.6876770337996, 'minX': 111.051438, 'minY': 22.428994, 'maxX': 111.877968, 'maxY': 22.955272 }
+    ]
+}
+        ];
+        function setViewPort() {
+ 
+           
+            if (gCounty == null) {
+                return;
+            }
+            //debugger;
+            //var initialPosition = Cesium.Cartesian3.fromDegrees(gCounty.centerX, gCounty.centerY, 600);
+            //var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(0, -8.34390550872461, 0);
+            //viewer.scene.camera.setView({
+            //    destination: initialPosition,
+            //    orientation: initialOrientation,
+            //    endTransform: Cesium.Matrix4.IDENTITY
+            //});
+            //debugger;
+            viewer.camera.flyTo({
+                //  destination: Cesium.Rectangle.fromDegrees(gCounty.minX, gCounty.minY, gCounty.maxX, gCounty.maxY)
+                destination: Cesium.Cartesian3.fromDegrees(gCounty.centerX, gCounty.minY, 1000.0),
+                orientation : {
+                heading : Cesium.Math.toRadians(0.0),
+                pitch : Cesium.Math.toRadians(-5.0),
+                roll : 0.0
+            }
+            });
+
+            var cap = document.getElementById('sp_caption');
+            if (cap == null) {
+                return;
+            }
+            cap.innerText = gCity.cityName + gCounty.countyName + "鸟瞰图";
+        }
+
+        function getQueryVariable(variable) {
+
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            var ret = null;
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) {
+                    ret = pair[1];
+                    break;
+                }
+            }
+            return (ret);
+        }
+
+    </script>
+    <script type="text/javascript">
+        var locationPointEntity = null;
+        var GoogleMapImgLayer = null;
+        var viewer;
+        var setviewPorted = false;
+
+        var tileStyle = new Cesium.Cesium3DTileStyle({
+            color: 'rgb(222, 222, 245)',
+            /*color: {
+                conditions: [
+                    ['${height} >= 300', 'rgba(45, 0, 75, 0.5)'],
+                    ['${height} >= 200', 'rgb(102, 71, 151)'],
+                    ['${height} >= 100', 'rgb(170, 162, 204)'],
+                    ['${height} >= 50', 'rgb(224, 226, 238)'],
+                    ['${height} >= 25', 'rgb(252, 230, 200)'],
+                    ['${height} >= 10', 'rgb(248, 176, 87)'],
+                    ['${height} >= 5', 'rgb(198, 106, 11)'],
+                    ['true', 'rgb(127, 59, 8)']
+                ]
+            },
+            */
+            show: true,
+            backgroundEnabled:  false  
+           
+        }
+                    );
+
+        function loadTiles(tilesArray) {
+            
+            
+            for (var idx = 0; idx < tilesArray.length ; idx++) {
+                var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset(
+                                {
+                                    url:   tilesArray[idx],
+                                    shadows:  Cesium.ShadowMode.DISABLED  // Cesium.ShadowMode.ENABLED ,
+                                  /*  skipLevelOfDetail: true,
+                                    baseScreenSpaceError: 2048,
+                                    skipScreenSpaceErrorFactor: 16,
+                                    skipLevels: 1,
+                                    immediatelyLoadDesiredLevelOfDetail: false,
+                                    loadSiblings: false,
+                                    cullWithChildrenBounds: true,
+                                    dynamicScreenSpaceError: true,
+                                    dynamicScreenSpaceErrorDensity: 0.00278,
+                                    dynamicScreenSpaceErrorFactor: 4.0,
+                                    dynamicScreenSpaceErrorHeightFalloff: 0.25
+                                    */
+                                }
+                            ));
+                viewer.scene.primitives.add(tileset);
+                tileset.readyPromise.then(function (tileset) {
+                    viewer.scene.primitives.add(tileset);
+           //         tileset.style = tileStyle;
+                    if (!setviewPorted)
+                    {
+                   //     viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.0, 0.8, tileset.boundingSphere.radius * 2.0));
+                        setviewPorted = true;
+                    }
+                 //  
+                    //    viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 1.0));
+                }
+               ).otherwise(function (error) {
+                   console.log(error);
+               }
+                   );
+                
+
+              
+            }
+        
+         
+        }
+
+        viewer = new Cesium.Viewer('cesiumContainer', {
+            sceneMode: Cesium.SceneMode.COLUMBUS_VIEW,
+            animation: false,       //是否显示动画控件
+            homeButton: true,       //是否显示home键
+            //geocoder:false,         //是否显示地名查找控件        如果设置为true，则无法查询
+            baseLayerPicker: false, //是否显示图层选择控件
+            timeline: false,        //是否显示时间线控件
+            fullscreenButton: false/*true*/, //是否全屏显示
+            scene3DOnly: true,     //如果设置为true，则所有几何图形以3D模式绘制以节约GPU资源
+            infoBox: false,         //是否显示点击要素之后显示的信息
+            sceneModePicker: false/*true*/,  //是否显示投影方式控件  三维/二维
+            navigationInstructionsInitiallyVisible: false,
+            navigationHelpButton: false,     //是否显示帮助信息控件
+            selectionIndicator: false,       //是否显示指示器组件
+            sceneMode: Cesium.SceneMode.SCENE3D,
+            allowTextureFilterAnisotropic: false,
+            terrainShadows: Cesium.ShadowMode.DISABLED,
+            contextOptions: {
+                webgl: {
+                    alpha: true,
+                    antialias: true,
+                    preserveDrawingBuffer: true,
+                    failIfMajorPerformanceCaveat: false,
+                    depth: true,
+                    stencil: true,
+                    premultipliedAlpha: false,
+                    desynchronized: true
+
+                },
+            },
+            targetFrameRate: 24,
+            orderIndependentTranslucency: false,
+            clockViewModel: null,
+            automaticallyTrackDataSourceClocks:false
+        });
+        viewer.imageryLayers.removeAll();
+        viewer.scene.globe.enableLighting = false;
+
+        var utc=Cesium.JulianDate.fromDate(new Date("2017/10/25 0:00:00"));//UTC
+
+        viewer.clock.currentTime=Cesium.JulianDate.addHours(utc,8,new Cesium.JulianDate());//北京时间=UTC+8=GMT+8
+ 
+
+
+        GoogleMapImgLayer = new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url: "https://mt1.google.cn/vt/lyrs=s&hl=zh-CN&x={x}&y={y}&z={z}&s=Gali"    //谷歌影像
+        }));
+        viewer.imageryLayers.add(GoogleMapImgLayer);
+
+
+        viewer._cesiumWidget._creditContainer.style.display = "none";  //	去除版权信息
+
+        viewer.scene.globe.enableLighting = false;
+
+        viewer.scene.backgroundColor = Cesium.Color.TRANSPARENT;
+        viewer.scene.globe.baseColor = Cesium.Color.TRANSPARENT;
+    /*    
+        var tilesArray = ["/3dtiles/440100/tile/6/0/23.json"
+
+, "/3dtiles/440100/tile/6/0/24.json"
+, "/3dtiles/440100/tile/6/0/47.json"
+, "/3dtiles/440100/tile/6/0/48.json"
+, "/3dtiles/440100/tile/6/0/49.json"
+        ];
+
+         */
+  
+        gCountyId = getQueryVariable("countyId");
+        gCityId = Math.floor(gCountyId / 100) * 100;
+        
+          gCounty = null;
+          for (var idx = 0; idx < gCityDefs.length; idx++) {
+              if (gCityDefs[idx].cityId == gCityId) {
+                  gCity = gCityDefs[idx];
+                  break;
+              }
+          }
+
+          if (gCity != null) {
+              for (var idx = 0; idx < gCity.counties.length; idx++) {
+                  if (gCountyId == gCity.counties[idx].countyId) {
+                      gCounty = gCity.counties[idx];
+                      break;
+                  }
+              }
+          }
+        
+          ajax('/3dtiles/' + gCityId + '/' + gCountyId + '/catalog.json', function (err, respTxt) {
+            var tilesArray = JSON.parse(respTxt);
+            loadTiles(tilesArray);
+           
+        }
+        );
+        
+          setViewPort();
+       
+    </script>
+</body>
+</html>

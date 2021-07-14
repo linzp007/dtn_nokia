@@ -1,0 +1,2690 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;margin:0 0 0 0;padding:0 0 0 0">
+
+<head>
+  <meta http-equiv="Access-Control-Allow-Origin" content="*">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <!--, user-scalable=no -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,
+      maximum-scale=1.0" />
+
+
+  <meta name="renderer" content="webkit|ie-comp|ie-stand" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <title></title>
+
+
+  <script src="./ol/ol.js"></script>
+  <link href="./ol/ol.css" rel="stylesheet" />
+  <link href="./css/dialog.css" rel="stylesheet" />
+  <link href="./css/main.css" rel="stylesheet" />
+  <script src="./js/gps.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="js/jquery-3.4.1.min.js"></script>
+  <script src="./js/dialog.js"></script>
+  <script src="./js/main_ol.js"></script>
+  <script src="./js/cell.js"></script>
+  <script src="./js/ajaxJavaScript.js"></script>
+  <title></title>
+  <style>
+    html,
+    body,
+    ul,
+    li {
+
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    i {
+      font-style: normal
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      -webkit-transform: scale(1);
+      -moz-transform: scale(1);
+      transform: scale(1);
+      -moz-user-select: none;
+      -khtml-user-select: none;
+      user-select: none;
+    }
+
+    input:focus {
+      outline: 1px solid rgb(74, 130, 203);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    #contextmenu_container {
+      padding: 0;
+      margin: 0;
+      font-weight: normal;
+      font-size: 12px;
+      font-family: Arial, Helvetica, '宋体';
+      background-color: #FFF;
+      color: #000;
+      overflow: hidden;
+      min-height: 100px;
+      line-height: 18px;
+      width: 60px;
+    }
+
+    .context-menu {
+      position: absolute;
+      z-index: 1;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      cursor: pointer;
+      /* visibility: hidden; */
+      -webkit-box-shadow: #a8b7d2 2px 2px 8px;
+      -moz-box-shadow: #a8b7d2 2px 2px 8px;
+      -ms-box-shadow: #a8b7d2 2px 2px 8px;
+      box-shadow: #a8b7d2 2px 2px 8px;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      padding: 4px 100px;
+      margin: 0;
+    }
+    .bw {
+            filter: grayscale(100%) brightness(85%);
+    }
+  </style>
+</head>
+
+<body style="width:100%;height:100%;margin:0 0 0 0;padding:0 0 0
+    0;overflow:hidden;">
+  <input type="hidden" id="addStationStatus" value="-1" />
+  <div id="map" style="width:100%;height:100%;"></div>
+  <div style="position: absolute;right:0px;bottom:0px;z-index:999;padding:10px
+      10px;">
+    <div><img src="./image_icons/xs.png" id="xs" style="display: none" onclick="opt_target_image(true);" width="30"
+        height="30" /></div>
+    <div><img src="./image_icons/yc.png" id="yc" style="display: none" onclick="opt_target_image(false);" width="30"
+        height="30" /> </div>
+    <!-- <div><input id="xs" style="display: none" type="button" value="显示" onclick="opt_target_image(true);" /></div>
+  <div><input id="yc" type="button" value="隐藏" onclick="opt_target_image(false);" /></div> -->
+    <div id="target_img" style="background: #cfcfcf;opacity: .8; display:
+        none"></div>
+    <div id="sinr_img" style="background: #cfcfcf;opacity: .8; display: none"></div>
+    <div id="ol_img" style="background: #cfcfcf;opacity: .8; display: none"></div>
+    <div id="mr_Legend_img" style="background: #cfcfcf;opacity: .8; display:
+        none"><img src="./image_icons/yc.png" id="yc" style="display: block" onclick="opt_Mr_Legend_image(false);"
+        width="30" height="30" /></div>
+  </div>
+
+  <div style="margin:0px 0px 0px 0px;padding:4px 4px 4px 4px;width:auto;height:18px ;
+  z-index:100;position:absolute;bottom:2px;right:auto;left:2px;background-color:#F0F3ED;;border-style:solid;border-color:#FFF;border-width:1px;display:block;color: black;opacity:0.7;">
+     <span style="color:#000;font-size: 11px;position: relative;top: -10px;">不透明度</span>
+     <input type="range" min="0" max="100" value="100" step="1" defaultValue="100" id="inputOpacity" style="margin:0px;border-style:solid;border-width:1px;border-color:rgb(19, 1, 1);"    onchange="onOpacityChanged()">
+     
+  </div>
+  <div id="myToolbar"
+    style="margin:0px 0px 0px 0px;padding:4px 4px 4px 4px;width:
+      auto;height:18px ;
+      z-index:90;position:absolute;bottom:auto;right:38px;left:auto;top: 2px;background-color:#F0F3ED;;border-style:solid;border-color:#FFF;;border-width:1px;display:block;color: black;display: none;">
+    <input id="chk_MapType" type="checkbox" style="visibility:hidden;" onchange="onMapTypeChanged()" />
+    <!-- <img style="vertical-align:middle;width:16px;height:auto;" id="chk_MapType" src="./resource/off_6.png"
+      onclick="onMapTypeChanged()" />
+    <span style="color:#fefefe"> 卫星地图</span>
+    <img style="vertical-align:middle;width:16px;height:auto;"  src="./resource/on_6.png"  id="inputMapLabel"   onchange="onMapLabelChanged()"/>
+    <span style="color:#fefefe">地名</span>
+    <img style="vertical-align:middle;width:16px;height:auto;"  src="./resource/on_6.png"  id="inputMapColor"   onchange="onMapColorChanged()"/>
+     <span style="color:#fefefe">单色底图</span> -->
+                    
+     <!-- <input type="range" min="0" max="100" value="100" step="1" defaultValue="100" id="inputOpacity" style="margin:0px;"    onchange="onOpacityChanged()">
+     <span style="color:#000;font-size: 11px;position: relative;top: -10px;">不透明度</span> -->
+
+    <!--<img style="vertical-align:middle;width:16px;height:auto;" id="chk_MapInformation" src="/images/off_6.png" onclick="onMapInformationChanged()" /><span style="color:#fefefe">  地图信息</span>-->
+    <!-- <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" id="chk_MapDraw"
+      src="./resource/off_6.png" onchange="onMapDrawChanged();" />
+    <span style="color:#fefefe"> 绘制多边形</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="show_polygon([1,2,3]);" />
+    <span style="color:#fefefe"> 显示多边形</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="show_polygon();" />
+    <span style="color:#fefefe"> 显示多边形</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="clear_polygon();" />
+    <span style="color:#fefefe"> 清除多边形</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="stationAddressInfo({ids:[1,2,3],ztype:true});" />
+    <span style="color:#fefefe"> 站址数据筛选</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="stationAddressInfo({ids:[1,2,3],ztype:false});" />
+    <span style="color:#fefefe"> 站址数据筛选</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="resultsByIndexType();" />
+    <span style="color:#fefefe"> 根据指标类型查询结果</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="displayProblemVillage()" />
+    <span style="color:#fefefe"> 问题小区</span>
+    <input type="checkbox" style="vertical-align:middle;width:16px;height:auto;" src="./resource/off_6.png"
+      onclick="displayProblemSite()" />
+    <span style="color:#fefefe"> 问题站点</span> -->
+    <!-- <select onchange="target_select(this);">
+      <option value="1">RSRP</option>
+      <option value="2">SINR</option>
+      <option value="3">OLP</option>
+  </select> -->
+  </div>
+  <!--台站基站菜单-->
+  <div id="contextmenu_container" class="ol-popup context-menu" style="min-width:
+      120px">
+    <a href="#" id="menuClose" class="ol-popup-closer"></a>
+    <div class="popup-title">菜单</div>
+    <div class="link-top"></div>
+    <div class="popup-content">
+      <div id="commonOperator">
+        <div>
+          <a class="hand" onclick="showCellDetailByBsId();">详情</a>
+        </div>
+        <div>
+          <a class="hand" onclick="showSingleCellResult();">显示单站仿真结果</a>
+        </div>
+        <div>
+          <a class="hand" onclick="cancelSingleCellResult();">取消单站仿真结果</a>
+        </div>
+      </div>
+      <div id="tempCellDiv" style="display: none;">
+        <div>
+          <a class="hand" onclick="addMoveAccident();">移动</a>
+        </div>
+        <div>
+          <a class="hand" onclick="delCellById()">删除</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 投诉小区对应的popup弹窗 -->
+  <div id="complaintdata-popup" class="ol-popup">
+    <a href="#" id="complaintdata-popup-closer" class="ol-popup-closer"></a>
+    <div id="complaintdata-popup-content"></div>
+  </div>
+
+  <!-- AJAX -->
+
+  <script>
+    var ajax = function (url, option, callback) {
+
+      var defaultOption = {
+
+        method: 'GET',
+
+        dataType: 'JSON'
+
+      }
+
+
+
+      if (typeof option === 'function') {
+
+        callback = option
+
+        option = defaultOption
+
+      } else {
+
+        for (var key in defaultOption) {
+
+          if (defaultOption.hasOwnProperty(key) && option[key] === undefined) {
+
+            option[key] = defaultOption[key]
+
+          }
+
+        }
+
+      }
+
+
+
+      var xhr = new XMLHttpRequest()
+
+
+
+      xhr.onreadystatechange = function () {
+
+        if (xhr.readyState === 4) {
+
+          //	if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && protocol == 'file:')) {
+
+          if ((xhr.status >= 200 && xhr.status < 400)) {
+
+            var response = xhr.responseText
+
+
+
+            if (option.dataType === 'JSON') {
+
+              try {
+
+                response = JSON.parse(response)
+
+              } catch (err) {
+
+                return callback(err)
+
+              }
+
+            }
+
+            callback(null, response)
+
+
+
+          } else if (xhr.status == 511) {
+
+            //gServerAddress
+
+            window.top.open("/", "_top");
+
+            // debugger;
+
+
+
+          }
+
+
+
+        }
+
+      }
+
+
+
+      xhr.open(option.method || 'GET', url)
+      xhr.setRequestHeader("token", token);
+      xhr.send()
+
+    }
+
+  </script>
+  <!-- END AJAX-->
+
+  <script>
+    function createIconStyle(url, imgSize, scale, revert) {
+      var iconStyle = new ol.style.Style({
+        image: new ol.style.Icon( /** @type {olx.style.IconOptions} */ ({
+          anchor: [0.5, 0.5],
+          size: [imgSize, imgSize],
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'fraction',
+          opacity: 1,
+
+          src: url,
+          scale: scale
+
+        }))
+      });
+      iconStyle.getImage().load();
+      return iconStyle;
+    }
+
+    var measureTooltipElement = null;
+    var measureTooltip = null;
+    /**
+     * Creates a new measure tooltip
+     */
+    function createMeasureTooltip() {
+      if (measureTooltipElement) {
+        measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+      }
+      measureTooltipElement = document.createElement('div');
+      measureTooltipElement.className = 'tooltip tooltip-measure';
+      measureTooltip = new ol.Overlay({
+        element: measureTooltipElement,
+        offset: [0, -15],
+        positioning: 'bottom-center'
+      });
+      map.addOverlay(measureTooltip);
+    }
+
+    function addSectorProVi(angle, sectorId, lng, lat, transformGcj02) {
+      var geometry = null;
+      if (transformGcj02) {
+        var coord = GPS.gcj_encrypt(lat, lng);
+        geometry = new ol.geom.Point([coord.lng, coord.lat]);
+      } else {
+        geometry = new ol.geom.Point([lng, lat]);
+      }
+      feature = new ol.Feature(geometry);
+      feature.setId(sectorId);
+
+      var style = createIconStyle('./resource/sector.png', 54, 1); //sectorStyle.clone();
+      if (style == null) {
+        debugger;
+      }
+      feature.setStyle(style);
+      feature.set("angle", angle);
+      var icon = feature.getStyle().getImage();
+      //  icon.setRotateWithView(true);
+      icon.setRotation(angle * Math.PI / 180.0);
+
+      sectorDataProVi.addFeature(feature);
+
+
+    }
+
+    function addBaseStation(stationId, lng, lat, transformGcj02) {
+      var geometry = null;
+      if (transformGcj02) {
+        var coord = GPS.gcj_encrypt(lat, lng);
+        geometry = new ol.geom.Point([coord.lng, coord.lat]);
+      } else {
+        geometry = new ol.geom.Point([lng, lat]);
+      }
+      feature = new ol.Feature(geometry);
+      feature.setId(stationId);
+      baseStaionData.addFeature(feature);
+
+    }
+
+    function addBaseStationProSi(stationId, lng, lat, transformGcj02) {
+      var geometry = null;
+      if (transformGcj02) {
+        var coord = GPS.gcj_encrypt(lat, lng);
+        geometry = new ol.geom.Point([coord.lng, coord.lat]);
+      } else {
+        geometry = new ol.geom.Point([lng, lat]);
+      }
+      feature = new ol.Feature(geometry);
+      feature.setId(stationId);
+      baseStaionDataProSi.addFeature(feature);
+
+    }
+
+    function addPointSearch(stationId, lng, lat, transformGcj02) {
+      searchSource.refresh();
+      var geometry = null;
+      if (transformGcj02) {
+        var coord = GPS.gcj_encrypt(lat, lng);
+        geometry = new ol.geom.Point([coord.lng, coord.lat]);
+      } else {
+        geometry = new ol.geom.Point([lng, lat]);
+      }
+      feature = new ol.Feature(geometry);
+      feature.setId(stationId);
+      searchSource.addFeature(feature);
+    }
+
+    function caculateExtent(leftLng, bottomLat, radius) {
+      var leftBottom = ol.proj.transform([leftLng, bottomLat], 'EPSG:4326', 'EPSG:3857');
+      var x = leftBottom[0];
+      var y = leftBottom[1];
+
+      var right = x + 2 * radius;
+
+      var top = y + 2 * radius;
+
+
+      //[minx, miny, maxx, maxy];
+      var mapExtent = [x, y, right, top];
+      return ol.proj.transformExtent(mapExtent, 'EPSG:3857', 'EPSG:4326');
+    }
+
+  </script>
+  <script type="text/javascript">
+    function draw_polygon_click(menuType) {
+      console.log('draw_polygon_click===>', menuType)
+      addInteraction(menuType, 1);
+    }
+
+    function onMapDrawChanged() {
+      var chk_draw = document.getElementById("chk_MapDraw").checked;
+      // if (chk_draw) {
+      //     chk = false;
+      // }
+      // else {
+      //     chk_draw = true;
+      // }
+      // document.getElementById("chk_MapDraw").checked = chk;
+      if (chk_draw) {
+        addInteraction(1, 1);
+      } else {
+        map.removeInteraction(draw);
+      }
+    }
+
+    function onMapTypeChanged() {
+      var chk = document.getElementById("chk_MapType").checked;
+      if (chk) {
+        chk = false;
+      } else {
+        chk = true;
+      }
+      document.getElementById("chk_MapType").checked = chk;
+      if (chk) {
+        backgroundMapLayer.setSource(satDataSource);
+        document.getElementById("chk_MapType").src = "./resource/on_6.png";
+      } else {
+        backgroundMapLayer.setSource(normalDataSource);
+        document.getElementById("chk_MapType").src = "./resource/off_6.png";
+      }
+    }
+
+    function onMapZoomed(evt) {
+      try {
+        if (!isShowSim) return;
+        resultsByIndexType(target_model);
+      } catch (e) {
+
+      }
+    }
+
+    function onMapSingleClick(evt) {
+      menuCloser();
+
+      let addStationStatus = $("#addStationStatus").val();
+      if (addStationStatus == 0) {
+        //新增
+        addMapCell(evt);
+      }
+      if(addStationStatus == 1){
+        // 显示投诉小区详情；
+        showComplainCellDetail(evt)
+      }
+    }
+
+    //小区详情
+    function showCellDetailByCellId() {
+      menuCloser();
+
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      if (stationType == 'baseStationCell') {
+        let cellId = feature.getId();
+        var url = req_back_url + "/address/getDetailsByCellId?cellId=" + cellId;
+        ajax(url, function (err, data) {
+          console.log(JSON.stringify(data));
+          if (!err && data) {
+            var cellName = data.cellName;
+            var lng = data.longitude;
+            var lat = data.latitude;
+            //基站类型
+            var siteType = data.layer;
+            var siteName = "未知";
+            if (siteType == 1) {
+              siteName = "宏站";
+            } else if (siteType == 0) {
+              siteName = "室分";
+            }
+            var freqBand = data.freqBand;
+            var azimuth = data.azimuth;
+            var mecDow = data.mecDow;
+            var addiEleDow = data.addiEleDow;
+            var height = data.height;
+
+            let model = {
+              cellName: cellName,
+              lng: lng,
+              lat: lat,
+              siteName: siteName,
+              freqBand: freqBand,
+              azimuth: azimuth,
+              mecDow: mecDow,
+              addiEleDow: addiEleDow,
+              height: height
+            }
+            window.parent['showCellDetail'](model);
+          }
+        });
+      }
+    }
+
+    function showCellDetailByBsId() {
+      menuCloser();
+
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      let bsId = feature.get("id");
+
+      let data = {
+        bsId: bsId
+      };
+      if (provinceCode == 420000) {
+        //湖北环境
+        if (stationType == 'baseStationCell') {
+          //正式表
+          let url = req_back_url + "/android/getStatResonInfoList";
+          detailData(url, data, 'get');
+        } else {
+          //临时表小区
+          let url = req_back_url + "/android/queryStatResonTemporary";
+          detailData(url, data, 'post');
+        }
+      } else {
+        //其他省份环境
+        if (stationType == 'baseStationCell') {
+          let url = req_back_url + "/polygons/getCellDetailsByBsId";
+          detailData(url, data, 'get');
+        }
+      }
+
+    }
+
+    //单站仿真结果显示
+    function showSingleCellResult() {
+      menuCloser();
+
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      let ecgi = feature.getId();
+      if (!singleSimulationCellsMap) {
+        window.parent['getAlertMsg']("此站无单站仿真结果", false);
+        return;
+      }
+      let singleSimModel = singleSimulationCellsMap[ecgi];
+      if (!singleSimModel) {
+        window.parent['getAlertMsg']("此站无单站仿真结果", false);
+        return;
+      }
+
+      //隐藏区域仿真结果
+      clear_image();
+      // setNumsSimImageIsShow(false);
+      showSingleSimResult(singleSimLayer, singleSimModel);
+    }
+
+    function cancelSingleCellResult() {
+      menuCloser();
+
+      //隐藏单站仿真结果
+      singleSimLayer.setVisible(false);
+      //显示区域仿真结果
+      setNumsSimImageIsShow(true);
+    }
+
+    //详情
+    function detailData(url, data, method) {
+      ajaxJs({
+        url: url,
+        type: method,
+        data: data,
+        dataType: 'json',
+        timeout:10000,
+        token:token,
+        contentType: "application/json",
+        success: function (dataStr) {
+          showCellDetail(dataStr)
+        },
+        //异常处理
+        error: function (e) {
+          console.log(e);
+        }
+      })
+    }
+    // function detailData(url) {
+    //   ajax(url, function (err, data) {
+    //     showCellDetail(data)
+    //   });
+    // }
+
+    function showCellDetail(dataStr) {
+      if (dataStr) {
+        // let data = JSON.parse(dataStr)[0];
+        let data = JSON.parse(dataStr);
+        var cellName = data.areaName == null ?'-':data.areaName;
+        var lng = data.longitude;
+        var lat = data.latitude;
+        //基站类型
+        var siteType = data.stationType;
+        var siteName = "未知";
+        if (siteType == 1) {
+          siteName = "宏站";
+        } else if (siteType == 0) {
+          siteName = "室分";
+        }
+        var freqBand = data.freqBand == null?'-':data.freqBand;
+        var azimuth = data.directionAngle == null?'-':data.directionAngle; 
+        var mecDow = data.mecDow == null?'-':data.mecDow; 
+        var addiEleDow = data.addiEleDow == null?'-':data.addiEleDow;
+        var height = data.antennaHeight == null?'-':data.antennaHeight;
+
+        let model = {
+          cellName: cellName,
+          lng: lng,
+          lat: lat,
+          siteName: siteName,
+          freqBand: freqBand,
+          azimuth: azimuth,
+          mecDow: mecDow,
+          addiEleDow: addiEleDow,
+          height: height
+        }
+        window.parent['showCellDetail'](model);
+      }
+    }
+
+    //删除基站
+    function delCellById() {
+      menuCloser();
+
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      if (stationType == 'baseStationCellTemp' || stationType == 'baseStationCell') {
+        let bsId = feature.get("id");
+        window.parent['delCellById']({
+          bsId: bsId
+        });
+      }
+    }
+
+    function delCellFeature() {
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      if (stationType == 'baseStationCellTemp' || stationType == 'baseStationCell') {
+        sectorData.removeFeature(feature);
+        sectorData.changed();
+      }
+    }
+
+    function addMapCell(evt) {
+      //添加小区
+      let addStationStatus = $("#addStationStatus").val();
+      if (addStationStatus == 0) {
+        var coordinate = evt.coordinate;
+        var coord = GPS.gcj_decrypt(coordinate[1], coordinate[0]);
+        var model = {
+          lng: coord.lng,
+          lat: coord.lat
+        };
+
+        window.parent['addCell'](model);
+      }
+    }
+
+    //新增小区 =0 //  $('#addStationStatus').val = 1 时为投诉小区显示类型；
+    function setStationDefaultInfo(addStationStatus) {
+      $('#addStationStatus').val(addStationStatus)
+    }
+
+    function showNewCell(cellId, lng, lat, angle, bsId) {
+      var coord = GPS.gcj_encrypt(lat, lng);
+      var cellLng = coord.lng;
+      var cellLat = coord.lat;
+      if (provinceCode == 420000) {
+        //湖北环境
+        addSector("baseStationCellTemp", sectorData, angle, cellId, cellLng, cellLat, false, bsId);
+      } else {
+        //其他地方环境
+        addSector("baseStationCell", sectorData, angle, cellId, cellLng, cellLat, false, bsId);
+      }
+    }
+
+    var is_mouse_move = false;
+
+    function onMapMouseMove(evt) {
+      try {
+        is_mouse_move = true;
+
+
+        var hit = false;
+        map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+          if (layer == null || feature == null) {
+            return true;
+          }
+          var name = layer.get("name");
+          if (name != null) {
+            if (name == "sectorLayer") {
+              gLastMouseOnLayer = layer;
+              gLastMouseOnFeature = feature;
+              hit = true;
+              return true;
+            }
+          }
+
+        }, {
+          hitTolerance: 1
+        });
+        if (hit) {
+          mapConstainor.style.cursor = "pointer"
+        } else {
+          mapConstainor.style.cursor = ""
+          gLastMouseOnLayer = null;
+          gLastMouseOnFeature = null;
+        }
+      } catch (e) {
+
+      }
+    }
+
+  </script>
+  <script type="text/javascript">
+    var fullScreenControl = new ol.control.FullScreen();
+    var map = null;
+    var backgroundMapLayer = null;
+
+    var sectorStyle = null;
+    var sectorData = null;
+    var sectorLayer = null;
+
+    //问题小区
+    var sectorStyleProVi = null;
+    var sectorDataProVi = null;
+    var sectorLayerProVi = null;
+
+    //问题基站
+    var baseStaionStyleProSi = null;
+    var baseStaionDataProSi = null;
+    var baseStaionLayerProSi = null;
+
+    //搜索
+    var searchStyle = null;
+    var searchSource = null;
+    var searchLayer = null;
+
+    var baseStaionStyle = null;
+    var baseStaionData = null;
+    var baseStaionLayer = null;
+
+    var resultImgData = null;
+    var resultImgLayer = null;
+
+    var selectInteraction = null;
+    var selectStation = null;
+    var translate = null;
+
+    //区域仿真layers数量
+    var simResultNum = 0;
+    //放大缩小时是否显示仿真结果
+    let isShowSim = false;
+
+    var contextmenu_container = document.getElementById('contextmenu_container');
+    var tempCellDiv = document.getElementById('tempCellDiv');
+    var menuClose = document.getElementById('menuClose')
+
+    let selectedSectorStyle = createIconStyle('./resource/sector2.png', 54, 1)
+    sectorStyle = createIconStyle('./resource/sector.png', 54, 1);
+    var icon = sectorStyle.getImage();
+    icon.setRotateWithView(true);
+    $('#yc').hide();
+    $('#target_img').hide();
+    $('#sinr_img').hide();
+    $('#ol_img').hide();
+    sectorData = new ol.source.Vector([]);
+    sectorLayer = new ol.layer.Vector({
+      source: sectorData,
+      renderMode: 'image',
+      zIndex: 100
+    });
+
+    sectorStyleProVi = createIconStyle('./resource/sector.png', 54, 1);
+    var iconProVi = sectorStyleProVi.getImage();
+    iconProVi.setRotateWithView(true);
+    sectorDataProVi = new ol.source.Vector([]);
+    sectorLayerProVi = new ol.layer.Vector({
+      source: sectorDataProVi,
+      renderMode: 'image'
+    });
+    //原来得
+    var token = sessionStorage.getItem('token')
+    $.ajax({
+      type: "GET",
+      //文件位置
+      url: req_back_url + "/overlapLegend",
+      // url: req_back_url+"/overlapLegend",
+      headers: {
+        "token": token //此处放置请求到的用户token
+      },
+      // url: "https://nqi.gmcc.net:20443/pro-dtn-server/overlapLegend",
+      //返回数据格式为json,也可以是其他格式如
+      dataType: "json",
+      //请求成功后要执行的函数，拼接html
+      success: function (data) {
+        var str = "<ul>";
+        str +=
+          "<li style='padding: 3px 10px;display: flex; align-items: center; justify-content: center; color:red'>图例</li>";
+        $.each(data, function (i, n) {
+          if (n.oveLegColor == 1) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: red; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.oveLegColor == 2) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: green; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.oveLegColor == 3) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: #66ccff; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.oveLegColor == 4) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: blue; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          }
+        });
+        str += "</ul>";
+        $("#ol_img").append(str);
+      }
+    });
+    $.ajax({
+      type: "GET",
+      //文件位置
+      // url: req_back_url+"/sinrLegend",
+      url: req_back_url + "/sinrLegend",
+      headers: {
+        "token": token //此处放置请求到的用户token
+      },
+      // url: "https://nqi.gmcc.net:20443/pro-dtn-server/sinrLegend",
+      //返回数据格式为json,也可以是其他格式如
+      dataType: "json",
+      //请求成功后要执行的函数，拼接html
+      success: function (data) {
+        var str = "<ul>";
+        str +=
+          "<li style='padding: 3px 10px;display: flex; align-items: center; justify-content: center; color:red'>图例</li>";
+        $.each(data, function (i, n) {
+          if (n.sinLegColor == 4) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: blue; display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.sinLegColor == 2) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: green; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.sinLegColor == 5) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: yellow; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.sinLegColor == 6) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: orange; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.sinLegColor == 1) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: red; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.sinLegColor == 7) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: #990033; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+              n.upLowLimit + "</span></li>";
+          }
+        });
+        str += "</ul>";
+        $("#sinr_img").append(str);
+      }
+    });
+    $.ajax({
+      type: "GET",
+      //文件位置
+      // url: req_back_url+"/rsrpLegend",
+      url: req_back_url + "/rsrpLegend",
+      headers: {
+        "token": token //此处放置请求到的用户token
+      },
+      // url: "https://nqi.gmcc.net:20443/pro-dtn-server/rsrpLegend",
+      //返回数据格式为json,也可以是其他格式如
+      dataType: "json",
+      //请求成功后要执行的函数，拼接html
+      success: function (data) {
+        var str = "<ul>";
+        str +=
+          "<li style='padding: 3px 10px;display: flex; align-items: center; justify-content: center; color:red'>图例</li>";
+        $.each(data, function (i, n) {
+          // if (n.rsrLegColor == 1) {
+          //   str += "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(255,0,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size:12px'>" + n.upLowLimit + "</span></li>";
+          // } else if (n.rsrLegColor == 2) {
+          //   str += "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height: 10px;background: rgba(255,153,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li></div>";
+          // } else if (n.rsrLegColor == 3) {
+          //   str += "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px; background: rgba(255,204,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li>";
+          // } else if (n.rsrLegColor == 4) {
+          //   str += "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(255,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size:12px'>" + n.upLowLimit + "</span></li></div>";
+          // } 
+          // else if (n.rsrLegColor == 5) {
+          //   str += "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(204,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li>";
+          // } else if (n.rsrLegColor == 6) {
+          //   str += "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(0,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li></div>";
+          // }
+          // else if (n.rsrLegColor == 7) {
+          //   str += "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(0,51,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li>";
+          // }else if (n.rsrLegColor == 8) {
+          //   str += "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(102,255,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li></div>";
+          // }
+          // else if (n.rsrLegColor == 9) {
+          //   str += "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(51,204,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li>";
+          // }else if (n.rsrLegColor == 10) {
+          //   str += "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(0,51,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" + n.upLowLimit + "</span></li></div>";
+          // }
+          if (n.rsrLegColor == 1) {
+            str +=
+              "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(255,0,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size:12px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.rsrLegColor == 2) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height: 10px;background: rgba(255,51,153,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li></div>";
+          } else if (n.rsrLegColor == 3) {
+            str +=
+              "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px; background: rgba(255,153,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.rsrLegColor == 4) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(255,204,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size:12px'>" +
+              n.upLowLimit + "</span></li></div>";
+          } else if (n.rsrLegColor == 5) {
+            str +=
+              "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(255,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.rsrLegColor == 6) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(204,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li></div>";
+          } else if (n.rsrLegColor == 7) {
+            str +=
+              "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(0,255,0,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.rsrLegColor == 8) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(102,255,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li></div>";
+          } else if (n.rsrLegColor == 9) {
+            str +=
+              "<div style='display: flex;justify-content: flex-start;'><li style='width:147px; padding: 3px 10px;display: flex; align-items: center;'><i style='width:10px;height:10px;background: rgba(51,204,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li>";
+          } else if (n.rsrLegColor == 10) {
+            str +=
+              "<li style='padding: 3px 10px;display: flex; align-items: center;margin-left: -13px;'><i style='width:10px;height:10px;background: rgba(0,51,255,102); display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size:12px'>" +
+              n.upLowLimit + "</span></li></div>";
+          }
+        });
+        str += "</ul>";
+        $("#target_img").append(str);
+      }
+    });
+
+    //搜索
+    searchStyle = new ol.style.Style({
+      image: new ol.style.Icon( /** @type {olx.style.IconOptions} */ ({
+        anchor: [0.5, 0.5],
+        size: [30, 30],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        opacity: 1,
+
+        src: './resource/pin2.png',
+        scale: 0.6
+
+      }))
+    });
+    searchSource = new ol.source.Vector([]);
+    searchLayer = new ol.layer.Vector({
+      source: searchSource,
+      renderMode: 'image',
+      style: searchStyle
+    });
+
+    baseStaionStyle = createIconStyle('./resource/baseStation.png', 15, 1);
+    baseStaionData = new ol.source.Vector([]);
+    baseStaionLayer = new ol.layer.Vector({
+      source: baseStaionData,
+      renderMode: 'image',
+      style: baseStaionStyle
+    });
+
+    baseStaionStyleProSi = createIconStyle('./resource/baseStation.png', 15, 1);
+    baseStaionDataProSi = new ol.source.Vector([]);
+    baseStaionLayerProSi = new ol.layer.Vector({
+      source: baseStaionDataProSi,
+      renderMode: 'image',
+      style: baseStaionStyleProSi
+    });
+
+    var coord = GPS.gcj_encrypt(22.4882191, 113.9167353);
+    var imageExtent = caculateExtent(coord.lng, coord.lat, 350);
+    resultImgData = new ol.source.ImageStatic({
+      url: '',
+      crossOrigin: "Anonymous",
+      projection: 'EPSG:4326',
+      imageExtent: imageExtent
+    });
+    resultImgLayer = new ol.layer.Image({
+      source: resultImgData //这里先为null.............
+      //source:null
+    });
+
+
+    var polygon_source = new ol.source.Vector([]);
+    var polygon_payer = new ol.layer.Vector({
+      source: polygon_source,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 0, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'red',
+          width: 2
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: 'blue'
+          })
+        })
+      }),
+      zoom: 6,
+      maxZoom: 18,
+      minZoom: 1
+    });
+
+    var show_polygon_source = new ol.source.Vector([]);
+    var show_polygon_payer = new ol.layer.Vector({
+      source: show_polygon_source,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 0, 255, 0.0)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'red',
+          width: 2
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: 'blue'
+          })
+        })
+      }),
+      zoom: 6,
+      maxZoom: 18,
+      minZoom: 1
+    });
+    sectorLayer.set("name", "sectorLayer");
+    sectorLayerProVi.set("name", "sectorLayerProVi");
+
+
+    var polygonCoverSource = new ol.source.Vector([]);
+    var polygonCoverPlayer = new ol.layer.Vector({
+      source: polygonCoverSource,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255,255,255,0)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: defaultCoverPolygonColor,
+          width: 2
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: defaultCoverPolygonColor
+          })
+        })
+      })
+    });
+
+    //单站仿真结果渲染
+    let singleSimLayer = new ol.layer.Image({
+      source: resultImgData,
+      zIndex: 2
+    });
+
+
+    // 路测图层初始化
+    var dt_source = new ol.source.Vector([]);
+    var dt_layer = new ol.layer.Vector({
+      source: dt_source,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.1)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'white',
+          width: 1
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: 'blue'
+          })
+        })
+      }),
+      // zoom: 16,
+      // maxZoom: 18,
+      // minZoom: 6
+    });
+
+    //  路测图层初始化 end
+    // 测量数据图层初始化
+    var mr_source = new ol.source.Vector([]);
+    var mr_layer = new ol.layer.Vector({
+      source: mr_source,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.5)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'white',
+          width: 1
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: 'blue'
+          })
+        })
+      }),
+      // zoom: 16,
+      // maxZoom: 18,
+      // minZoom: 6
+
+    });
+    // 测量数据图层初始化 end
+    // 投诉数据图层初始化 begin
+    var complaintdata_source = new ol.source.Vector([]);
+    var complaintdata_layer = new ol.layer.Vector({
+      visible: false,
+      className: "complaintdataLayer",
+      source: complaintdata_source,
+      style: new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: 'rgba(255, 255, 255, 0.5)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'white',
+          width: 1
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+            color: 'blue'
+          })
+        })
+      }),
+      // zoom: 16,
+      // maxZoom: 18,
+      // minZoom: 6
+
+    });
+    // 投诉数据图层初始化 end
+
+    // window.onload = function () {
+
+
+
+    //谷歌交通地图地址：http://www.google.cn/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i380072576!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m1!1e0，
+
+    //平面图地址2：http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}，
+
+    //影像图地址：http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}，
+
+    //影像注记层地址：http://www.google.cn/maps/vt?lyrs=h@189&gl=cn&x={x}&y={y}&z={z}，
+
+    //    地形图层：http://www.google.cn/maps/vt?lyrs=t@189&gl=cn&x={x}&y={y}&z={z}
+
+    //var googleMapLayer = new ol.layer.Tile({
+    //    source: new ol.source.XYZ({
+    //        url: 'http://www.google.cn/maps/vt?lyrs=t@189&gl=cn&x={x}&y={y}&z={z}'
+    //        //                  url: 'http://www.google.cn/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i380072576!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m1!1e0'
+    //        //                  url:'http://mt0.google.cn/maps/vt?lyrs=s@773&gl=cn&x={x}&y={y}&z={z}'
+    //        //                    url:'http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
+    //        //                    url:'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
+    //        //                    url:'http://www.google.cn/maps/vt?lyrs=h@189&gl=cn&x={x}&y={y}&z={z}'
+    //    })
+    //});
+    // googl OSM地图
+    // normalDataSource = new ol.source.XYZ({
+    //     url: 'https://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}'
+    //     , cacheSize: 1024
+    //     , crossOrigin: "Anonymous"
+    //     , tilePixelRatio: 1, // THIS IS IMPORTANT
+    //   }
+    // );
+
+    // satDataSource = new ol.source.XYZ({
+    //   url: 'https://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
+    //   , cacheSize: 1024
+    //   , crossOrigin: "Anonymous"
+    //   , tilePixelRatio: 1, // THIS IS IMPORTANT
+    // });
+    // 天地图
+    normalDataSource = new ol.source.XYZ({
+      url: 'https://wprd0{1-4}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7',
+      cacheSize: 1024,
+      crossOrigin: "Anonymous",
+      tilePixelRatio: 1, // THIS IS IMPORTANT
+    });
+
+    satDataSource = new ol.source.XYZ({
+      url: 'https://wprd0{1-4}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=2&style=6',
+      cacheSize: 1024,
+      crossOrigin: "Anonymous",
+      tilePixelRatio: 1, // THIS IS IMPORTANT
+    });
+
+
+
+    var chk = document.getElementById("chk_MapType").checked;
+
+    if (chk) {
+      backgroundMapLayer = new ol.layer.Tile({
+        source: satDataSource
+      });
+    } else {
+      backgroundMapLayer = new ol.layer.Tile({
+        source: normalDataSource
+      });
+    }
+
+
+    //var coord = [120.498260165703, 30.7465843811685];
+    var coord = [114.05637, 22.54621];
+
+
+    var gcj02 = GPS.gcj_encrypt(coord[1], coord[0]);
+    map = new ol.Map({
+      renderer: /** @type {Array<ol.renderer.Type>} */ (['webgl', 'canvas']),
+      layers: [backgroundMapLayer, resultImgLayer, sectorLayer, sectorLayerProVi, baseStaionLayer,
+        baseStaionLayerProSi, polygon_payer, show_polygon_payer, searchLayer, dt_layer, mr_layer,
+        complaintdata_layer, singleSimLayer,polygonCoverPlayer
+      ],
+      view: new ol.View({
+        // center: [113.320512, 23.122231],
+        center: [gcj02.lng, gcj02.lat],
+        projection: 'EPSG:4326',
+        // projection: 'EPSG:3857',
+        // zoom: 14.8
+        minZoom: 6,
+        maxZoom: 25,
+        smoothExtentConstraint: true,
+        resolution: 0.000045
+
+      }),
+      target: 'map'
+    });
+    //将全屏显示控件加载到map中
+    map.addControl(fullScreenControl);
+
+    
+
+    var menu_overlay = new ol.Overlay({
+      element: contextmenu_container,
+      autoPan: true,
+      autoPanAnimation: {
+        duration: 250
+      }
+    })
+    map.addOverlay(menu_overlay)
+    menu_overlay.setPositioning('bottom-left');
+
+
+    createMeasureTooltip();
+    map.getView().on("change", onMapZoomed);
+    map.on('singleclick', onMapSingleClick);
+
+    map.on('pointermove', onMapMouseMove);
+
+    map.getViewport().addEventListener('mouseout', function () {
+      if (measureTooltipElement) {
+        measureTooltipElement.classList.add('hidden');
+        measureTooltipElement.innerHTML = "";
+      }
+    });
+    //双击
+    map.getViewport().addEventListener('dblclick', function () {
+      if (draw != null) {
+        map.removeInteraction(draw);
+      }
+    });
+    map.on('contextmenu', function (evt) {
+      evt.preventDefault(); //屏蔽自带的右键事件
+      let coordinate = evt.coordinate //获取点击地图的经纬度caida
+
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      menu_overlay.setPosition(coordinate) //把div显示在点击地图的位置上
+      var stationType = feature.get('stationType')
+      if (stationType == 'baseStationCellTemp' || stationType == 'baseStationCell') {
+        contextmenu_container.style.display = 'block';
+        tempCellDiv.style.display = 'block';
+      } else if (stationType == 'HBbaseStationCell') {
+        contextmenu_container.style.display = 'block';
+        tempCellDiv.style.display = 'none';
+      }
+    });
+
+
+    menuClose.onclick = function () {
+      menuCloser();
+    }
+
+    function menuCloser() {
+      menu_overlay.setPosition(undefined)
+      menuClose.blur()
+      return false
+    }
+
+    //触发选选中小区
+    function setStationListener() {
+      setStationDefaultInfo(-1)
+      let selectLayers = [sectorLayer];
+      selectInteraction = addSelectListener(selectLayers)
+      selectInteraction.on(
+        'select',
+        function (event) {
+          selectStation = getSelectStation(event);
+        }
+      )
+
+    }
+
+    setStationListener();
+
+
+
+    map.changed();
+    map.getView().changed();
+
+    sectorData.changed();
+    sectorDataProVi.changed();
+
+    map.render();
+
+
+    // }
+
+    //移动
+    function addMoveAccident() {
+      menuCloser();
+      if (!selectStation || !selectStation.selected || !selectStation.selected.feature) {
+        return;
+      }
+      var feature = selectStation.selected.feature
+      var stationType = feature.get('stationType');
+      if (stationType == 'baseStationCellTemp' || stationType == 'baseStationCell') {
+        setTranslateActive(true);
+      }
+
+    }
+
+    function moveTranslate() {
+      translate = new ol.interaction.Translate({
+        features: selectInteraction.getFeatures(),
+      });
+      map.addInteraction(translate);
+
+      setTranslateActive(false);
+
+      translate.on('translateend', function (f) {
+        let coordinate = f.coordinate;
+        let features = f.features;
+        let id = null;
+        features.forEach(function (feature) {
+          id = feature.get("id");
+        });
+
+        let coord = GPS.gcj_decrypt(coordinate[1], coordinate[0]);
+        let model = {
+          bsId: id,
+          lng: coord.lng,
+          lat: coord.lat
+        }
+
+        setTranslateActive(false);
+        window.parent['updateCell'](model);
+      });
+    }
+
+    //初始化移动
+    moveTranslate();
+
+    function setTranslateActive(active) {
+      if (translate) {
+        translate.setActive(active);
+      }
+
+    }
+
+
+   
+  </script>
+  <!-- 业务start -->
+  <script>
+    function search_position(searchtext) {
+      // var lat_lng = $("#search_text").val();
+      var lat_lng = searchtext;debugger
+      if (lat_lng == "" || $.trim(lat_lng).length == 0) {
+        lat_lng = '23.121117817286503,113.32121399999998';
+      }
+      var lat = lat_lng.split(",")[0];
+      var lng = lat_lng.split(",")[1];
+
+
+      var coord = GPS.gcj_encrypt(parseFloat(lat), parseFloat(lng));
+      var cPoint = [coord.lng, coord.lat];
+      addPointSearch("_locationPin_", coord.lng, coord.lat, false);
+
+      var zoomCur = map.getView().getZoom();
+      var view = map.getView();
+      view.animate({
+        zoom: zoomCur
+      }, {
+        center: cPoint
+      });
+    }
+
+    function xsyc() {
+      $('#yc').show();
+      $('#target_img').show();
+    }
+
+    function add_click(lng_lat_arr, menuType) {
+      var result = [];
+      for (var i = 0; i < lng_lat_arr.length; i++) {
+        var polygon_point_arr = lng_lat_arr[i];
+        for (var j = 0; j < polygon_point_arr.length; j++) {
+          var coord = GPS.gcj_decrypt(polygon_point_arr[j][1], polygon_point_arr[j][0]);
+          var model = {
+            lng: coord.lng,
+            lat: coord.lat
+          };
+          result.push(model);
+        }
+        window.parent['vueDefinedMyProp'](result);
+
+      }
+      // var pStr = initProvince();
+      // var htStr = "名称:<input type='text' id='p_name' /><br/>";
+      // htStr += "省份:"+pStr+"<br/>";
+      // htStr += "地市:<select id='city' style='width:70%;'></select><br/>";
+      // Dialog.alert("",
+      //     function () {
+      //         cancel_polygon();
+
+      //         return;
+      //         var result = [];
+      //         for (var i = 0; i < lng_lat_arr.length; i++) {
+      //             var polygon_point_arr = lng_lat_arr[i];
+      //             for (var j = 0; j < polygon_point_arr.length; j++) {
+      //                 var model = {
+      //                     lng: polygon_point_arr[j][0],
+      //                     lat: polygon_point_arr[j][1]
+      //                 };
+      //                 result.push(model);
+      //             }
+
+      //         }
+      //         var p_name = $("#p_name").val();
+      //         var province = $("#province option:selected ").text();
+      //         var city = $("#city option:selected").text();
+      //         var cityCode = $("#city").val();
+      //         var param = {
+      //             // "code":"11113333",
+      //             "name": p_name,
+      //             "coordinates": result,
+      //             // "userCode":"venus0002",
+      //             // "userName":"venus",
+      //             "province": province,
+      //             "city": city,
+      //             "menuType": menuType,
+      //             "cityCode": cityCode
+      //         }
+      //         console.log(JSON.stringify(param));
+      //         // document.getElementById("name").value
+      //         // var url = "http://localhost/dtn?service=regionSave&Parameters="+JSON.stringify(param);
+
+      //         $.ajax({
+      //             // 请求方式
+      //             type: "post",
+      //             // contentType
+      //             contentType: "application/json",
+      //             // dataType
+      //             dataType: "json",
+      //             // url
+      //             url: "http://192.168.191.2:9201/polygons",
+      //             // 把JS的对象或数组序列化一个json 字符串
+      //             data: JSON.stringify(param),
+      //             // result 为请求的返回结果对象
+      //             success: function (data) {
+      //                 alert(data.msg);
+      //             }
+      //         });
+      //         // $.post("http://192.168.191.2:9201/polygons",param,function(data){
+      //         //     alert(JOSN.parse(data).msg);
+      //         // });
+      //         // ajax(url, function (err, json) {
+      //         //     if (!err && json) {
+      //         //         alert(json.msg);
+      //         //     }
+      //         // });
+      //     },
+      //     { title: '绘制多边形', yesLabel: '保存' }
+      // );
+    }
+    var tId = null;
+
+    function init_is_mouse_move() {
+      is_mouse_move = false;
+    }
+
+    function target_select(target_id) {
+      tId = target_id;
+      if (!target_id) {
+        $('#yc').hide();
+        $('#target_img').hide();
+        $("#sinr_img").hide();
+        $("#ol_img").hide();
+      } else if (target_id == 1) {
+        xsyc();
+        $("#target_img").show();
+        $("#sinr_img").hide();
+        $("#ol_img").hide();
+        $("#xs").attr('style', 'display:none')
+      } else if (target_id == 2) {
+        xsyc();
+        $("#sinr_img").show();
+        $("#target_img").hide();
+        $("#ol_img").hide();
+        $("#xs").attr('style', 'display:none')
+      } else if (target_id == 3) {
+        xsyc();
+        $("#ol_img").show();
+        $('#target_img').hide();
+        $("#sinr_img").hide();
+        $("#xs").attr('style', 'display:none')
+      }
+    }
+
+    function opt_target_image(show) {
+      if (show) {
+        if (tId == 1) {
+          $("#target_img").show();
+          $("#sinr_img").hide();
+          $("#ol_img").hide();
+        } else if (tId == 2) {
+          $("#sinr_img").show();
+          $("#target_img").hide()
+          $("#ol_img").hide();
+        } else if (tId == 3) {
+          $("#ol_img").show();
+          $("#target_img").hide()
+          $("#sinr_img").hide();
+        }
+        $("#yc").attr('style', 'display:block')
+        $("#xs").attr('style', 'display:none')
+      } else {
+
+        $("#target_img").hide();
+        $("#sinr_img").hide();
+        $("#ol_img").hide();
+        $("#xs").attr('style', 'display:block')
+        $("#yc").attr('style', 'display:none')
+      }
+    }
+    //清除多边形
+    function clear_polygon() {
+      // map.removeLayer(resultImgLayer);
+      clear_image();
+      clearSingleSimResult(singleSimLayer);
+      resultImgLayer.setVisible(false);
+      map.un('pointermove');
+      polygon_source.clear();
+      show_polygon_source.clear();
+      baseStaionData.refresh();
+      baseStaionDataProSi.refresh();
+      sectorData.refresh();
+      sectorDataProVi.refresh();
+      map.removeOverlay(measureTooltip);
+      map.removeOverlay(helpTooltip);
+      // measureTooltipElement.style.display = "none";
+
+
+      var tip_arr = document.getElementsByClassName("ol-tooltip");
+      for (var i = 0; i < tip_arr.length; i++) {
+        tip_arr[i].style.display = "none";
+      }
+      // helpTooltipElement.style.display = "none";
+      // measureTooltipElement.style.display = "none";
+      // helpTooltipElement.classList.add('hidden');
+      // measureTooltipElement.classList.add('hidden');
+    }
+
+    //取消多边形
+    function cancel_polygon() {
+      polygon_source.refresh();
+      var tip_arr = document.getElementsByClassName("ol-tooltip");
+      for (var i = 0; i < tip_arr.length; i++) {
+        tip_arr[i].style.display = "none";
+      }
+    }
+    //显示多边形
+    function show_polygon(polygonIds, token) {
+      // var param={
+      //     polygonIds:[5,4,1,2,3]
+      // }
+      show_polygon_source.refresh();
+      if (polygonIds == null) {
+        // show_polygon_source.refresh();
+        return;
+      }
+
+
+      var param_str = "";
+      for (var i = 0; i < polygonIds.length; i++) {
+        if (i == 0) {
+          param_str = polygonIds[i];
+        } else {
+          param_str += "," + polygonIds[i];
+        }
+
+      }
+      show_polygon_source.refresh(); //解决点击显示颜色加深
+      var url = req_back_url + "/polygons/" + param_str;
+      // var url = req_back_url+"/polygons/" + param_str;
+      // var url = "https://nqi.gmcc.net:20443/pro-dtn-server/polygons/" + param_str;
+      ajax(url, function (err, polygons) {
+        if (!err && polygons) {
+          for (var m = 0; m < polygons.length; m++) {
+            var polygon = polygons[m];
+            //声明一个新的数组
+            var coordinatesPolygon = new Array();
+            for (var i = 0; i < polygon.coordinates.length; i++) {
+              var coordinates = new Array();
+              var coord = GPS.gcj_encrypt(polygon.coordinates[i].lat, polygon.coordinates[i].lng);
+              coordinates.push(coord.lng);
+              coordinates.push(coord.lat);
+              // var pointTransform = ol.proj.fromLonLat([coordinates[i][0], coordinates[i][1]], "EPSG:4326");
+              coordinatesPolygon.push(coordinates);
+            }
+
+            //多边形此处注意一定要是[坐标数组]
+            var plygon = new ol.geom.Polygon([coordinatesPolygon])
+            //多边形要素类
+            var feature = new ol.Feature({
+              geometry: plygon,
+            });
+            show_polygon_source.addFeature(feature);
+            show_polygon_source.changed();
+            // console.log(show_polygon_source)
+
+            if (polygons.length - 1 == m) {
+              var coord = GPS.gcj_encrypt(polygon.centerCoordinate.lat, polygon.centerCoordinate.lng);
+              set_view_center(coord.lng, coord.lat);
+            }
+          }
+        }
+      }, token);
+    }
+
+    function init_image_layer() {
+      resultImgData = new ol.source.ImageStatic({
+        url: '',
+        crossOrigin: "Anonymous",
+        projection: 'EPSG:4326',
+        imageExtent: imageExtent
+      });
+      resultImgLayer = new ol.layer.Image({
+        source: resultImgData, //这里先为null.............
+        zIndex: 1
+        //source:null
+      });
+    }
+
+    //根据站址数据筛选
+    function stationAddressInfo(model) {
+      if (model == null) {
+        return;
+      }
+      var ids_str = "";
+      for (var i = 0; i < model.ids.length; i++) {
+        if (i == 0) {
+          ids_str = model.ids[i];
+        } else {
+          ids_str += "," + model.ids[i];
+        }
+      }
+      var ztype = model.ztype;
+
+      if (ztype == false || model.ids == []) {
+        //单站仿真清除
+        clearSingleSimResult(singleSimLayer);
+        baseStaionData.refresh();
+        sectorData.refresh();
+        return;
+      }
+
+      let celltypes = model.cellType;
+      let freqbands = model.freq;
+      let jobIds = model.jobIds;
+
+
+
+      //非湖北环境的地址
+      var url = req_back_url + "/polygons/" + ids_str + "/isCheckedAddress/" + ztype + "?freq=" + freqbands +
+        "&cellType=" + celltypes //服务器地址
+      ajax(url, function (err, json) {
+        if (!err && json) {
+          let sourceCellTables = [];
+          if (provinceCode == 420000) {
+            //湖北环境 1,2
+            sourceCellTables = [1, 2];
+          } else {
+            //其他地方 0
+            sourceCellTables = [0];
+
+          }
+          provinceCellDisplay(json, sourceCellTables);
+
+          //单站仿真结果数据加载
+          getSingleSimulationCells(jobIds);
+        }
+      });
+
+    }
+
+    //根据jobids 查询选中任务得仿真结果小区
+    let singleSimulationCellsMap = null;
+
+    function getSingleSimulationCells(jobIds) {
+      if (!jobIds) return;
+      let csvUrls = [];
+      let fileNames = [];
+      for (let i = 0; i < jobIds.length; i++) {
+        let fileUrl = req_simulation_url + "/" + jobIds[i];
+        let allFileUrl = fileUrl + "/cellRSRP.csv";
+        let isExistUrl = isExistFileJquery(allFileUrl);
+        if (!isExistUrl) continue;
+        csvUrls.push(fileUrl);
+        fileNames.push('cellRSRP.csv');
+      }
+      let csvObjects = getCsvDatasByFileUrls(csvUrls, fileNames);
+      singleSimulationCellsMap = jsonToEcgiKeyMap(csvObjects);
+    }
+
+    function isExistFileJquery(fileUrl) {
+      result = false;
+      jQuery.ajaxSetup({
+        async: false
+      });
+      $.get(fileUrl)
+        .done(function () {
+          result = true;
+        })
+        .fail(function () {
+          result = false;
+        })
+      jQuery.ajaxSetup({
+        async: true
+      });
+      return (result);
+    }
+
+
+    //cellTableTypes:数组，0:其他省份小区;1:湖北正式表小区;2:湖北临时表小区
+    function provinceCellDisplay(json, cellTableTypes) {
+      init_image_layer();
+      //小于数组长度
+      let isHasData = false;
+      for (var i = 0; i < json.length; i++) {
+        var g5stationID = json[i].g5StationId;
+        var coordinate = json[i].coordinate;
+        var sourceTableType = json[i].sourceTableType;
+        let isCellTableMatch = isContainsValue(cellTableTypes, sourceTableType);
+        if (!isCellTableMatch) continue;
+
+
+        var coord = GPS.gcj_encrypt(coordinate.lat, coordinate.lng);
+        var lng = coord.lng;
+        var lat = coord.lat;
+
+        // addBaseStation(g5stationID, lng, lat, false);
+        let featureType = getCellType(sourceTableType)
+        console.log("featureType:" + featureType);
+
+        var cells = json[i].cells;
+        var lteCells = json[i].lteCells;
+        //todo
+        if (cells != null && cells.length > 0) {
+          isHasData = true;
+          showCell(cells, featureType);
+        }
+        if (lteCells != null && lteCells.length > 0) {
+          isHasData = true;
+          showCell(lteCells, featureType);
+        }
+
+      }
+
+      if(!isHasData){
+        window.parent['getAlertMsg']("本区域内无此频段制式小区", false);
+      }
+    }
+
+
+
+    function set_view_center(lng, lat) {
+      if (is_mouse_move) return;
+      map.getView().setCenter([parseFloat(lng), parseFloat(lat)]);
+      // map.getView().setZoom();
+    }
+
+    var img_layer_arr = [];
+
+    function init_img_layer() {
+      for (var i = 0; i < 20; i++) {
+        resultImgData = new ol.source.ImageStatic({
+          // url: './result/RSRP.png',
+          url: "",
+          crossOrigin: '',
+          projection: 'EPSG:4326',
+          imageExtent: imageExtent
+        });
+        resultImgLayer = new ol.layer.Image({
+          source: resultImgData,
+          zIndex: 1
+        });
+        img_layer_arr[i] = resultImgLayer;
+        map.addLayer(resultImgLayer);
+      }
+    }
+    init_img_layer();
+
+    function clear_image() {
+      isShowSim = false;
+      for (var i = 0; i < img_layer_arr.length; i++) {
+        img_layer_arr[i].setVisible(false);
+      }
+    }
+
+    function setNumsSimImageIsShow(isShow) {
+      isShowSim = isShow;
+      var simLayers = simResultNum < img_layer_arr.length ? simResultNum : img_layer_arr.length;
+      for (var i = 0; i < simLayers; i++) {
+        img_layer_arr[i].setVisible(isShow);
+      }
+    }
+
+
+
+
+
+    //根据指标类型查询结果
+    function resultsByIndexType(model) {
+      // map.addLayer(resultImgLayer);
+      console.log('resultsByIndexType===>', model);
+      isShowSim = true;
+      target_model = model;
+      var zoom = Math.floor(map.getView().getZoom()); //获取当前地图的缩放级别
+      zoom = zoom < 14 ? 14 : zoom;
+      zoom = zoom > 18 ? 18 : zoom;
+
+      if (model.targetId == '' || !model.taskId.length) {
+        clear_image();
+        return;
+      }
+      var task_str = "";
+      for (var i = 0; i < model.taskId.length; i++) {
+        if (i == 0) {
+          task_str = model.taskId[i];
+        } else {
+          task_str += "," + model.taskId[i];
+        }
+      }
+
+      var url = req_back_url + "/polygons/" + task_str + "/targetId/" + model.targetId + "/zoom/" + zoom +
+        "?calculateregion=" + model.calculateregion + "&roadLevel=" + model.roadLevel;
+      ajax(url, function (err, json_arr) {
+        if (!err && json_arr) {
+
+          for (var i = 0; i < json_arr.length; i++) {
+            var json = json_arr[i];
+            //todo  type == 0 NR ;1== lte
+            let type = json.type
+            // if (type == 1) {
+            //   continue;
+            // }
+            //一个对象
+            var leftTop = json.leftTop;
+            var rightBottom = json.rightBottom;
+            var mapUrl = json.mapUrl;
+            if (leftTop == null || rightBottom == null) {
+              // clear_image();
+              return;
+            }
+            // var imageExtent = caculateExtent(leftTop.lng, rightBottom.lat,rightBottom.lng,leftTop.lat);
+            var leftTop_coord = GPS.gcj_encrypt(leftTop.lat, leftTop.lng);
+            var rightBottom_coord = GPS.gcj_encrypt(rightBottom.lat, rightBottom.lng);
+            var imageExtent = [leftTop_coord.lng, rightBottom_coord.lat, rightBottom_coord.lng, leftTop_coord
+              .lat
+            ];
+            resultImgData = new ol.source.ImageStatic({
+              url: req_simulation_url + mapUrl,
+              crossOrigin: '',
+              projection: 'EPSG:4326',
+              imageExtent: imageExtent
+            });
+            // resultImgLayer = new ol.layer.Image({
+            //     source: resultImgData
+            // });
+            // map.addLayer(resultImgLayer);
+            // img_layer_arr.push(resultImgLayer);
+            img_layer_arr[i].setSource(resultImgData);
+            img_layer_arr[i].setVisible(true);
+            // resultImgLayer.setSource(resultImgData);
+            // resultImgLayer.setVisible(true);
+            // set_view_center(leftTop.lng, leftTop.lat);
+
+            simResultNum++;
+
+            if (json_arr.length - 1 == i) {
+              set_view_center((leftTop_coord.lng + rightBottom_coord.lng) / 2, (leftTop_coord.lat +
+                rightBottom_coord.lat) / 2);
+            }
+          }
+
+        } else {
+          clear_image();
+        }
+      });
+    }
+
+
+
+    //问题小区
+    var village_model = null;
+
+    function displayProblemVillage(model) {
+      // console.log(model);
+      village_model = model;
+      if (model == null || model.polygonIds.length == 0 || model.problemAreaIds.length == 0) {
+        sectorDataProVi.refresh();
+        return;
+      }
+      var problemAreaIds = model.problemAreaIds;
+      var polygonIds = model.polygonIds;
+
+
+      var pids = "";
+      for (var i = 0; i < problemAreaIds.length; i++) {
+        if (i == 0) {
+          pids = problemAreaIds[i];
+        } else {
+          pids = pids + "," + problemAreaIds[i];
+        }
+      }
+
+      var polygonIdsStr = "";
+      for (var i = 0; i < polygonIds.length; i++) {
+        if (i == 0) {
+          polygonIdsStr = polygonIds[i];
+        } else {
+          polygonIdsStr = polygonIdsStr + "," + polygonIds[i];
+        }
+      }
+
+      var url = req_back_url + "/address/displayProblemVillage?problemAreaId=" + pids + "&polygonIds=" +
+        polygonIdsStr;
+
+      ajax(url, function (err, json_arr) {
+        sectorDataProVi.refresh();
+        if (!err && json_arr) {
+          for (var i = 0; i < json_arr.length; i++) {
+            var cell = json_arr[i];
+            var cellId = cell.cellId;
+            var coordinate = cell.coordinate;
+            var coord = GPS.gcj_encrypt(coordinate.lat, coordinate.lng);
+            var lng = coord.lng;
+            var lat = coord.lat;
+            var angle = cell.angle;
+            addSectorProVi(angle, cellId, lng, lat, false);
+            // set_view_center(lng, lat);  去掉定位
+          }
+        }
+        sectorDataProVi.changed();
+      });
+    }
+    //问题站址
+    var site_model = null;
+
+    function displayProblemSite(model) {
+      site_model = model;
+      if (model == null || model.polygonIds.length == 0 || model.problemSiteIds.length == 0) {
+        baseStaionDataProSi.refresh();
+        return;
+      }
+      var problemSiteIds = model.problemSiteIds;
+      var polygonIds = model.polygonIds;
+
+      var pids = "";
+      for (var i = 0; i < problemSiteIds.length; i++) {
+        if (i == 0) {
+          pids = problemSiteIds[i];
+        } else {
+          pids = pids + "," + problemSiteIds[i];
+        }
+      }
+
+      var polygonIdsStr = "";
+      for (var i = 0; i < polygonIds.length; i++) {
+        if (i == 0) {
+          polygonIdsStr = polygonIds[i];
+        } else {
+          polygonIdsStr = polygonIdsStr + "," + polygonIds[i];
+        }
+      }
+      // var url = req_back_url+"/address/displayProblemSite?problemSiteId="+pids+"&polygonIds="+polygonIdsStr;
+      var url = req_back_url + "/address/displayProblemSite?problemSiteId=" + pids + "&polygonIds=" + polygonIdsStr;
+      // var modelTest = {"problemSiteId":1,"polygonIds":[3]};
+      // var url = "http://localhost/dtn/displayProblemSite&Parameters="+JSON.stringify(modelTest);
+
+      ajax(url, function (err, json_arr) {
+        baseStaionDataProSi.refresh();
+        if (!err && json_arr) {
+          for (var i = 0; i < json_arr.length; i++) {
+            var g5Stations = json_arr[i];
+            var g5StationId = g5Stations.g5StationId;
+            var coordinate = g5Stations.coordinate;
+            var coord = GPS.gcj_encrypt(coordinate.lat, coordinate.lng);
+            var lng = coord.lng;
+            var lat = coord.lat;
+            addBaseStationProSi(g5StationId, lng, lat, false);
+
+          }
+
+        }
+        baseStaionDataProSi.changed();
+      });
+    }
+
+  </script>
+  <!--  业务end -->
+  <script>
+    /**
+     * Currently drawn feature.
+     * @type {import("../src/ol/Feature.js").default}
+     */
+    var sketch;
+
+
+    /**
+     * The help tooltip element.
+     * @type {HTMLElement}
+     */
+    var helpTooltipElement;
+
+
+    /**
+     * Overlay to show the help messages.
+     * @type {Overlay}
+     */
+    var helpTooltip;
+
+
+    /**
+     * The measure tooltip element.
+     * @type {HTMLElement}
+     */
+    var measureTooltipElement;
+
+
+    /**
+     * Overlay to show the measurement.
+     * @type {Overlay}
+     */
+    var measureTooltip;
+
+
+    /**
+     * Message to show when the user is drawing a polygon.
+     * @type {string}
+     */
+    var continuePolygonMsg = 'Click to continue drawing the polygon';
+
+
+    /**
+     * Message to show when the user is drawing a line.
+     * @type {string}
+     */
+    var continueLineMsg = 'Click to continue drawing the line';
+
+
+    /**
+     * Handle pointer move.
+     * @param {import("../src/ol/MapBrowserEvent").default} evt The event.
+     */
+    var pointerMoveHandler = function (evt) {
+      if (evt.dragging) {
+        return;
+      }
+
+      return;
+      /** @type {string} */
+      var helpMsg = 'Click to start drawing';
+
+      if (sketch) {
+        var geom = sketch.getGeometry();
+        if (geom instanceof ol.geom.Polygon) {
+          helpMsg = continuePolygonMsg;
+        } else if (geom instanceof ol.geom.LineString) {
+          helpMsg = continueLineMsg;
+        }
+      }
+
+      helpTooltipElement.innerHTML = helpMsg;
+      helpTooltip.setPosition(evt.coordinate);
+
+      helpTooltipElement.classList.remove('hidden');
+    };
+    map.on('pointermove', pointerMoveHandler);
+
+    // map.getViewport().addEventListener('mouseout', function() {
+    //     helpTooltipElement.classList.add('hidden');
+    // });
+
+
+    var typeSelect = document.getElementById('type');
+
+    var draw = null; // global so we can remove it later
+    /**
+     * Format length output.
+     * @param {LineString} line The line.
+     * @return {string} The formatted length.
+     */
+    var formatLength = function (line) {
+      var length = ol.sphere.getLength(line, {
+        projection: 'EPSG:4326'
+      });
+      var output;
+      if (length > 100) {
+        output = (Math.round(length / 1000 * 100) / 100) +
+          ' ' + 'km';
+      } else {
+        output = (Math.round(length * 100) / 100) +
+          ' ' + 'm';
+      }
+      return output;
+    };
+
+
+    /**
+     * Format area output.
+     * @param {Polygon} polygon The polygon.
+     * @return {string} Formatted area.
+     */
+    var formatArea = function (polygon) {
+      var area = ol.sphere.getArea(polygon, {
+        projection: 'EPSG:4326'
+      });
+      var output;
+      if (area > 10000) {
+        output = (Math.round(area / 1000000 * 100) / 100) +
+          ' ' + 'km<sup>2</sup>';
+      } else {
+        output = (Math.round(area * 100) / 100) +
+          ' ' + 'm<sup>2</sup>';
+      }
+      return output;
+    };
+    var geom;
+
+    function addInteraction(menuType, map_type) {
+      console.log('addIn====>', menuType, map_type)
+      // var type = (typeSelect.value == 'area' ? 'Polygon' : 'LineString');
+      // var type = 'Polygon';
+      var type = (map_type == 1 ? 'Polygon' : 'LineString');
+      draw = new ol.interaction.Draw({
+        source: polygon_source,
+        type: type,
+        style: new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.2)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: 'rgba(0, 0, 0, 0.5)',
+            lineDash: [10, 10],
+            width: 2
+          })
+        })
+      });
+      map.addInteraction(draw);
+
+
+      createMeasureTooltip();
+      createHelpTooltip();
+
+      var listener;
+      draw.on('drawstart',
+        function (evt) {
+          // set sketch
+          sketch = evt.feature;
+
+          /** @type {import("../src/ol/coordinate.js").Coordinate|undefined} */
+          var tooltipCoord = evt.coordinate;
+
+          listener = sketch.getGeometry().on('change', function (evt) {
+            geom = evt.target
+            var output
+            if (geom instanceof ol.geom.Polygon) {
+              output = formatArea(geom)
+              tooltipCoord = geom.getInteriorPoint().getCoordinates()
+            } else if (geom instanceof ol.geom.LineString) {
+              output = formatLength(geom)
+              tooltipCoord = geom.getLastCoordinate()
+            }
+            measureTooltipElement.innerHTML = output
+            measureTooltip.setPosition(tooltipCoord)
+          })
+        })
+
+      draw.on('drawend',
+        function () {
+          measureTooltipElement.className = 'ol-tooltip ol-tooltip-static';
+          measureTooltip.setOffset([0, -7]);
+          // unset sketch
+          // alert(geom.getCoordinates());
+          if (map_type == 1) {
+            add_click(geom.getCoordinates(), menuType);
+          }
+          // getAll5GStatictisPolygonAmapJson(geom.getGeometry().getCoordinates()[0]);
+          // unset tooltip so that a new one can be created
+          measureTooltipElement = null;
+          // createMeasureTooltip();
+          ol.Observable.unByKey(listener);
+          map.removeInteraction(draw);
+        });
+    }
+
+
+    /**
+     * Creates a new help tooltip
+     */
+    function createHelpTooltip() {
+      if (helpTooltipElement) {
+        helpTooltipElement.parentNode.removeChild(helpTooltipElement);
+      }
+      helpTooltipElement = document.createElement('div');
+      helpTooltipElement.className = 'ol-tooltip hidden';
+      helpTooltip = new ol.Overlay({
+        element: helpTooltipElement,
+        offset: [15, 0],
+        positioning: 'center-left'
+      });
+      map.addOverlay(helpTooltip);
+    }
+
+
+    /**
+     * Creates a new measure tooltip
+     */
+    function createMeasureTooltip() {
+      if (measureTooltipElement) {
+        measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+      }
+      measureTooltipElement = document.createElement('div');
+      measureTooltipElement.className = 'ol-tooltip ol-tooltip-measure';
+      measureTooltip = new ol.Overlay({
+        element: measureTooltipElement,
+        offset: [0, -15],
+        positioning: 'bottom-center'
+      });
+      map.addOverlay(measureTooltip);
+
+    }
+
+  </script>
+  <script>
+    // 增加路测数据绘制散点图；
+    var colorSet = ['rgba(255,0,0,102)', 'rgba(255,51,153,102)', 'rgba(255,153,0,102)', 'rgba(255,204,0,102)',
+      'rgba(255,255,0,102)', 'rgba(204,255,0,102)', 'rgba(0,255,0,102)', 'rgba(102,255,255,102)',
+      'rgba(51,204,255,102)', 'rgba(0,51,255,102)'
+    ];
+
+    function draw_pointsForDt(dataArray) {
+      // 隐藏 mr图例；
+      hideMrLegend();
+      // 刷新各个图层数据源；
+      mr_source.refresh();
+      dt_source.refresh();
+      console.log("draw_pointsForDt dataArray=:" + JSON.stringify(dataArray))
+      // 绘制散点图       
+      for (var i = 0; i < dataArray.length; i++) {
+        var centerGcj = GPS.gcj_encrypt(dataArray[i].lat, dataArray[i].lon);
+        centerPoint = [centerGcj.lng, centerGcj.lat]
+        // var centerPoint = [trackData[i].lon,trackData[i].lat];// [114.05637, 22.54621];
+        var dt_r = 0.00005;
+        let RSRP = dataArray[i].rsrp;
+        if (RSRP < -110) { // RSRP < -110
+          let iColorValue = colorSet[0]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-110 <= RSRP && RSRP < -105) {
+          let iColorValue = colorSet[1]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-105 <= RSRP && RSRP < -100) {
+          let iColorValue = colorSet[2]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-100 <= RSRP && RSRP < -95) {
+          let iColorValue = colorSet[3]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-95 <= RSRP && RSRP < -90) {
+          let iColorValue = colorSet[4]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-90 <= RSRP && RSRP < -85) {
+          let iColorValue = colorSet[5]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-85 <= RSRP && RSRP < -80) {
+          let iColorValue = colorSet[6]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-80 <= RSRP && RSRP < -75) {
+          let iColorValue = colorSet[7]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (-75 <= RSRP && RSRP < -70) {
+          let iColorValue = colorSet[8]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        } else if (RSRP >= -70) {
+          let iColorValue = colorSet[9]
+          dt_source.addFeature(createCircleFeature(i, centerPoint, dt_r, iColorValue, "driveTest"));
+        }
+
+      }
+      if (centerPoint) {
+        if (dataArray.length > 0) {
+          let tmp = GPS.gcj_encrypt(dataArray[0].lat, dataArray[0].lon);
+          let centerPoint = [tmp.lng, tmp.lat];
+          view = map.getView();
+          view.setCenter(centerPoint)
+        }
+
+      }
+    }
+
+    function createCircleFeature(id, centerPoint, r, iColorValue, featureName) {
+
+      var colorFill = iColorValue; //'rgba(255, 110, 100, 0.6)'
+      //圆形,中心点和半径
+      var colorOfStyle = new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: colorFill //'rgba(255, 110, 100, 0.6)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: iColorValue, // 'blue'
+          width: 1
+        }),
+        // image: new ol.style.Circle({
+        //   radius: 7,
+        //   fill: new ol.style.Fill({
+        //     color: 'blue'
+        //   })
+        // })
+      });
+      var cricle = new ol.geom.Circle(centerPoint, r);
+      var feature = new ol.Feature({
+        geometry: cricle,
+        labelPoint: new ol.geom.Point(centerPoint),
+        name: 'dt' + id
+      });
+      feature.setId(id)
+      feature.set('dtType', featureName)
+      feature.setStyle(colorOfStyle)
+      return feature;
+    }
+    // MR数据图例；todo
+    function addMrdataLegend() {
+      var str = "<ul id='mrLegendId'>";
+      str +=
+        "<li style='padding: 3px 10px;display: flex; align-items: center; justify-content: center; color:red'>MR图例</li>";
+        str +=
+        "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: white; display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size: 14px'>" +
+        "总采样点数<100" + "</span></li>";
+      str +=
+        "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: red; display:block;'></i><span style='padding-left: 5px;display: inline-block; font-size: 14px'>" +
+        "Scrsrp<-110dbm的采样率(0，0.8]" + "</span></li>";
+
+      str +=
+        "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: yellow ; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+        "Scrsrp<-110dbm的采样率(0.8，0.936]" + "</span></li>";
+
+      str +=
+        "<li style='padding: 3px 10px;display: flex; align-items: center;'><i style='width:12px;height:12px;background: green; display:block;'></i><span style='padding-left: 5px;display: inline-block;font-size: 14px'>" +
+        "Scrsrp<-110dbm的采样率(0.936，1]" + "</span></li>";
+      str += "</ul>";
+      $("#mr_Legend_img").append(str);
+
+    }
+    // 初始化 MR图例;
+    addMrdataLegend();
+
+    function showMrLegend() {
+      $("#mr_Legend_img").show();
+    }
+
+    function hideMrLegend() {
+      $("#mr_Legend_img").hide();
+    }
+
+    // MR数据绘制 栅格图层；红、黄、绿
+    var mrColorSet = ['rgba(255,0,0,1)', 'rgba(255,255,0,1)', 'rgba(0,255,0,1)']
+
+    var mr_radius = 10 // 单位 米
+    function drawSqureForMr(dataArray) {
+      // 隐藏路测数据图例；该图例复用了仿真结果的图例;$('#yc').hide();        
+      $('#target_img').hide();
+      // 显示MR图例；
+      showMrLegend();
+      // dt_layer.getSource().clear();
+      dt_source.refresh();
+      mr_source.refresh();
+
+      let centerPoint = [GPS.gcj_encrypt(dataArray[0].latitude, dataArray[0].longitude).lng, GPS.gcj_encrypt(dataArray[
+        0].latitude, dataArray[0].longitude).lat]
+      for (let i = 0; i < dataArray.length; i++) {
+        let epsg = '4326';
+        let polygonId = i;
+        let featureType = 'MRType'
+
+        var centerGcj = GPS.gcj_encrypt(dataArray[i].latitude, dataArray[i].longitude);
+        centerPoint = [centerGcj.lng, centerGcj.lat];
+        defaultMrStyle = new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: 'rgba(	250,255,255, 1)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: 'rgba(	250,0,0, 1)',
+            width: 1
+          })
+        });
+        // 栅格mr总采样点数<100（不包含等于）为白色        
+        if (dataArray[i].samplingSum < 100) {
+          defaultMrStyle = setMrStyle(3);
+        } else {
+          let scrsrp110percent = dataArray[i].scrsrp110 / dataArray[i].samplingSum
+          // （0，0.8】——红色栅格；
+          if (dataArray[i].scrsrp110 != null && (0 < scrsrp110percent && scrsrp110percent<= 0.8) ) {
+          
+            defaultMrStyle = setMrStyle(0);
+          }
+          if(dataArray[i].scrsrp110 != null && (0.8 < scrsrp110percent  && scrsrp110percent <= 0.936)){
+            defaultMrStyle = setMrStyle(1);  // （0.8，0.936】——黄色栅格；
+          }
+          if(dataArray[i].scrsrp110 != null && (0.936 < scrsrp110percent && scrsrp110percent <= 1)){
+            defaultMrStyle = setMrStyle(2); // （0.936，1】——绿色栅格
+          }
+      }
+        // // if(rsrp >= -95 ) 栅格Scrsrp>=-95dbm的采样点数量 :  绿色 = mrColorSet[2]；
+        // if (dataArray[i].scrsrp95 != null) {
+        //   defaultMrStyle = setMrStyle(2);
+        // }
+        // // 栅格Scrsrp>=-110dbm且Scrsrp<-95dbm的采样点数量 黄色 =  mrColorSet[1]；
+        // if (dataArray[i].scrsrp95_110 != null) {
+        //   defaultMrStyle = setMrStyle(1);
+
+        // }
+        // // 栅格Scrsrp<-110dbm的采样点数量   红色 =  mrColorSet[0]；
+        // if (dataArray[i].scrsrp110 != null) {
+        //   defaultMrStyle = setMrStyle(0);
+        // }
+        // 绘制Feature
+        let mrFeature = createSquareFeature('4326', polygonId, centerPoint, mr_radius, featureType);
+        mrFeature.setStyle(defaultMrStyle);
+        mr_source.addFeature(mrFeature);
+      }
+      if (centerPoint) {
+        view = map.getView();
+        view.setCenter(centerPoint)
+      }
+    }
+
+    function setMrStyle(idexOfcolor) {
+      return new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: mrColorSet[idexOfcolor] // 'rgba(	250,205,00, 1)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: mrColorSet[idexOfcolor], //'rgba(	250,0,0, 1)',
+          width: 1
+        })
+      });
+    }
+    // 投诉数据显示;
+    function drawCellDetailsForComplaintData(dataArray) {
+      dt_source.refresh();
+      mr_source.refresh();
+      complaintdata_source.refresh();
+      // (1)加载并显示投诉小区极其详情； complaintdata_source
+      // showCell(cells, "baseStationCell");
+      let featureType = "baseStationCell";
+      let cells = dataArray;
+      let sectorSource = complaintdata_source;
+      // 如果新增的经纬度和小区名称等属性为空，那就是投诉文件里面的cgi数据库没有对应的小区？？
+      let centerPoint = [GPS.gcj_encrypt(dataArray[0].latitude, dataArray[0].longitude).lng, GPS.gcj_encrypt(dataArray[
+        0].latitude, dataArray[0].longitude).lat]
+
+      for (var j = 0; j < cells.length; j++) {
+        var cellId = cells[j].cgi;
+        var bsId = cells[j].cgi; //cells[j].bsId;
+        //  var coordinate2 = cells[j].coordinate;
+        var coord2 = GPS.gcj_encrypt(cells[j].latitude, cells[j].longitude);
+        var cellLng = coord2.lng;
+        var cellLat = coord2.lat;
+        var angle = 45; //cells[j].angle;
+        //    addSector("baseStationCell",sectorData,angle, cellId, cellLng, cellLat, false, bsId);
+        addSector(featureType, sectorSource, angle, cellId, cellLng, cellLat, false, bsId);
+      }
+      complaintdata_layer.setVisible(true);
+
+      // (2)点击或鼠标 hover到小区feature时，显示 该小区投诉详情。如果新增的经纬度和小区名称等属性为空，那就是投诉文件里面的cgi数据库没有对应的小区
+
+      if (centerPoint) {
+        view = map.getView();
+        view.setCenter(centerPoint)
+      }
+      // 设置标志字段；投诉;todo 有待优化,因为目前没有找到关闭的地方，关闭设置=-1;
+      setStationDefaultInfo(1)
+    }
+   function showComplainCellDetail(evt){
+     //
+     let addStationStatus = $("#addStationStatus").val();
+     debugger
+     if( addStationStatus == 1){
+      var coordinate = evt.coordinate;
+        var coord = GPS.gcj_decrypt(coordinate[1], coordinate[0]);
+        //toto 构造点击的具体投诉小区数据;待完善？？
+        var model = {
+          cgi:'460-00-898020-92',
+          coverName: 'F1_安陆红卫粮站-ZLH-1', // 小区名称
+          monthComplaintSum:0, // 月投诉量汇总
+          town: '安陆市',  // 地市
+          city: '孝感',  // 县市
+          lng: coord.lng,
+          lat: coord.lat
+        };
+            /** cgi:'',  // 小区CGI
+                coverName: '', // 小区名称 cellName
+                monthComplaintSum:11, // 月投诉量汇总
+                lng: '',
+                lat: '',
+                town: '',  // 地市
+                city: '',  // 县市 */
+        window.parent['showComplainCellDetail'](model);
+     }
+
+    }
+
+  </script>
+  <script>
+    function onMapColorChanged() {
+            var chk = document.getElementById("inputMapColor").checked?false :true;
+            if (chk) {
+              backgroundMapLayer.renderer_.container.className = 'bw';
+            }
+            else {
+              backgroundMapLayer.renderer_.container.className = "ol-layer";
+            }
+
+            document.getElementById("inputMapColor").checked=chk;
+            if (chk){
+              document.getElementById("inputMapColor").src="./resource/on_6.png";
+            }
+            else {
+              document.getElementById("inputMapColor").src="./resource/off_6.png";
+            }
+        }
+
+        function onMapLabelChanged() {
+
+            var chk = document.getElementById("inputMapLabel").checked?false :true;
+            gLabelLayer.setVisible(chk);
+            gLabelLayer2.setVisible(chk);
+
+            document.getElementById("inputMapLabel").checked=chk;
+            if (chk){
+              document.getElementById("inputMapLabel").src="./resource/on_6.png";
+            }
+            else {
+              document.getElementById("inputMapLabel").src="./resource/off_6.png";
+            }
+        }
+        
+        
+        
+        
+         function onOpacityChanged() {
+            var v = document.getElementById("inputOpacity").value / 100;
+            // resultImgLayer.setOpacity(v);
+            for(let i=0;i<img_layer_arr.length;i++){
+              img_layer_arr[i].setOpacity(v);
+            }
+            // 单站仿真透明度
+            singleSimLayer.setOpacity(v);
+        }
+
+        function cleanAll() {
+          console.log('cleanAll')
+          map.clearOverlays()
+        }
+        // window.onload = function () {
+        //   document.getElementById("inputMapLabel").checked=true;
+        //   document.getElementById("inputMapColor").checked=true;
+        // }
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1213 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+    <meta name="renderer" content="webkit|ie-comp|ie-stand" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>射线仿真</title>
+    <script src="../Build/Cesium/Cesium.js"></script>
+    <script src="viewerCesiumNavigationMixin.js"></script>
+    <style>
+        @import url(../Build/Cesium/Widgets/widgets.css);
+
+        html, body, #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .cesium-viewer-toolbar, /* 右上角按钮组 */
+        .cesium-viewer-animationContainer, /* 左下角动画控件 */
+        .cesium-viewer-timelineContainer, /* 时间线 */
+        .cesium-viewer-bottom /* logo信息 */ {
+            display: none;
+        }
+
+        .cesium-viewer-fullscreenContainer /* 全屏按钮 */ {
+            position: absolute;
+            top: -999em;
+        }
+
+        ul,li{ 
+            padding:0;
+            margin:0;
+            list-style:none;
+        }
+        td,span{
+            filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;
+        }
+        
+    </style>
+</head>
+<body style="">
+
+    <div id="cesiumContainer">
+    </div>
+    <div id="div_caption" style="width:100%;height:25px;position:absolute; top:10px;">
+        <div style="height:24px;width:200px;overflow-x:visible;background-color:#000; text-align:center;filter:alpha(Opacity=30);-moz-opacity:0.3;opacity: 0.3;position:absolute; top:0px; left:0px;top:0;right:0;left:0;bottom:auto;margin:auto; ">
+            <div style="height:24px;width:200px;filter:alpha(Opacity=100);-moz-opacity:1;opacity: 1;position:absolute; top:0px; left:0px;">
+                <span id="sp_caption" style="text-align:center;color:#ffffff; "></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="toolbar" style="margin:2px 2px 2px 2px;padding:2px 2px 2px 2px;   width: 160px; height:28px; z-index:100;position:absolute; top: 8px; bottom:auto;right:10px;background-color:#0b0b24;border-style:solid;border-color:#d2fcfc;border-width:1px;">
+        <table style="font-size:10px;  width:100%;height:100%;color:#000040;position:relative ; line-height:11px;" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>
+                    <img onclick="onFullScreenClicked()" src="./icons/fullscreen.png"/>
+                </td>
+                <td>
+                    <img onclick="onShowGoogleMapClicked()" src="./icons/ground.png"/>
+                </td>
+                <td>
+                    <img onclick="on3DMapClicked()" src="./icons/2dmap.png" />
+                </td>
+                <td>
+                    <img  onclick="onFloorClicked()"   src="./icons/floor.png" />
+                </td>
+
+                <td>
+                    <img onclick="onEyeClicked()" src="./icons/eye.png" />
+                </td>
+
+                <td  >
+                    <img onclick="onHideLegendClicked()" src="./icons/hide.png" />
+                </td>
+                
+            </tr>
+
+        </table>
+    </div>
+
+    <div id="div_floor" style="margin:2px 2px 2px 2px;padding:2px 2px 2px 2px;   width: 80px; height:200px; z-index:100;position:absolute; top: 40px; bottom:auto;right:10px;background-color:white;border-style:solid;border-color:#d2fcfc;border-width:1px;display:none;font-size:10px">
+        <ul style="height:20px;">
+            <li><input type="checkbox" id="chk_floor_all" onchange="onChkFloorAllChecked()" checked/>全部</li>
+        </ul>
+        <ul id="menu_floor" style="font-size:10px;width:100%;height:180px;overflow-y:scroll">
+        </ul>
+    </div>
+
+    <div id="div_sector" style="margin:2px 2px 2px 2px;padding:2px 2px 2px 2px;   width: 140px; height:200px; z-index:100;position:absolute; top: 40px; bottom:auto;right:10px;background-color:white;border-style:solid;border-color:#d2fcfc;border-width:1px;display:none;font-size:10px">
+ 
+        <ul id="menu_sector" style="font-size:10px;width:100%;height:100%;overflow-y:scroll"></ul>
+    </div>
+
+    <div id="legend" style="margin:2px 2px 2px 2px;padding:2px 2px 2px 2px;   width: auto; height:150px; z-index:100;position:absolute; top:auto; bottom:8px;left:10px;background-color:white;border-style:solid;border-color:#d2fcfc;border-width:1px;filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;">
+        <table id="tb_rsrp" style="display:none;font-size:10px;  width:100%;height:100%;margin:5px 5px 5px 5px;color:#000040;position:relative ; line-height:11px;" cellpadding="0" cellspacing="0">
+            <tr>
+                <td  style="font-size: 16px;height:26px;margin:0px 0px 0px 0px;padding: 0 0 0 0 ;" align="center" colspan="4" onclick="onHideLegendClicked()" >
+                    
+                            <div onclick="onHideLegendClicked()" style="width:25px;position:absolute;left:3px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1">
+                                <img onclick="onHideLegendClicked()" src="./icons/close.png" style="filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;" />
+                            </div>
+                            <span style="font-size: 16px;width:100%;position:absolute;left:0px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;top:0px;" align="center" colspan="4">
+                                图例
+                            </span>
+                      
+                     </td>
+            </tr>
+
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FF0000; '></div></td>
+                <td>&nbsp;X&nbsp;&lt;&nbsp;-110</td>
+            
+                <td><div style='height:8px;width:8px;background-color:#FF3399; '></div></td>
+                <td>&nbsp;-110&nbsp; &lt;= X&nbsp; &lt;&nbsp;-105</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FF9900; '></div></td>
+                <td>&nbsp;-105&nbsp; &lt;= X &lt;&nbsp;&nbsp;-100</td>
+                <td><div style='height:8px;width:8px;background-color:#FFCC00; '></div></td>
+                <td>&nbsp;-100&nbsp; &lt;= X &lt;&nbsp;&nbsp;-95</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FFFF00; '></div></td>
+                <td>&nbsp;-95&nbsp; &lt;= X &lt;&nbsp;&nbsp;-90</td>
+                <td><div style='height:8px;width:8px;background-color:#CCFF00; '></div></td>
+                <td>&nbsp;-90&nbsp; &lt;= X &lt;&nbsp;&nbsp;-85</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#00FF00; '></div></td>
+                <td>&nbsp;-85&nbsp; &lt;= X &lt;&nbsp;&nbsp;-80</td>
+                <td><div style='height:8px;width:8px;background-color:#66FFFF; '></div></td>
+                <td>&nbsp;-80&nbsp; &lt;= X &lt;&nbsp;&nbsp;-75</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#33CCFF; '></div></td>
+                <td>&nbsp;-75&nbsp; &lt;= X &lt;&nbsp;&nbsp;-70</td>
+                <td><div style='height:8px;width:8px;background-color:#0033FF; '></div></td>
+                <td>&nbsp;-70&nbsp;&lt;&nbsp; =&nbsp;X</td>
+            </tr>
+
+</table>
+
+        <table id="tb_sinr" style="display:none;font-size:10px;  width:100%;height:100%;margin:5px 5px 5px 5px;color:#000040;position:relative ; line-height:11px;" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="font-size: 16px;height:26px;margin:0px 0px 0px 0px;padding: 0 0 0 0 ;" align="center" colspan="4" onclick="onHideLegendClicked()">
+
+                    <div onclick="onHideLegendClicked()" style="width:25px;position:absolute;left:3px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1">
+                        <img onclick="onHideLegendClicked()" src="./icons/close.png" style="filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;" />
+                    </div>
+                    <span style="font-size: 16px;width:100%;position:absolute;left:0px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;top:0px;" align="center" colspan="4">
+                        图例
+                    </span>
+
+                </td>
+            </tr>
+
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FF0000; '></div></td>
+                <td>&nbsp;&nbsp;X&nbsp; &lt;&nbsp;-5</td>
+                <td><div style='height:8px;width:8px;background-color:#FF3399; '></div></td>
+                <td>&nbsp;-5&nbsp;&lt; =&nbsp;X&nbsp;&lt;&nbsp;0</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FF9900; '></div></td>
+                <td>&nbsp;0&nbsp; &lt; = X &lt;&nbsp;5</td>
+                <td><div style='height:8px;width:8px;background-color:#FFCC00; '></div></td>
+                <td>&nbsp;5&nbsp; &lt;= X &lt;&nbsp;10</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FFFF00; '></div></td>
+                <td>&nbsp;6&nbsp; &lt;= X &lt;&nbsp;8</td>
+                <td><div style='height:8px;width:8px;background-color:#CCFF00; '></div></td>
+                <td>&nbsp;8&nbsp; &lt; = X &lt;&nbsp;10</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#00FF00; '></div></td>
+                <td>&nbsp;10 &nbsp;&lt; = X &lt;&nbsp;12</td>
+                <td><div style='height:8px;width:8px;background-color:#66FFFF; '></div></td>
+                <td>&nbsp;12&nbsp; &lt; = X &lt;&nbsp;15</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#33CCFF; '></div></td>
+                <td>&nbsp;15 &nbsp;&lt; = X &lt;&nbsp;20</td>
+                <td><div style='height:8px;width:8px;background-color:#0033FF; '></div></td>
+                <td>&nbsp;20&nbsp; &lt;&nbsp;= &nbsp;X</td>
+            </tr>
+
+</table>
+
+        <table id="tb_cover" style="display:none;font-size:10px;  width:100%;height:100%;margin:5px 5px 5px 5px;color:#000040;position:relative ; line-height:11px;" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="font-size: 16px;height:26px;margin:0px 0px 0px 0px;padding: 0 0 0 0 ;" align="center" colspan="4" onclick="onHideLegendClicked()">
+
+                    <div onclick="onHideLegendClicked()" style="width:25px;position:absolute;left:3px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1">
+                        <img onclick="onHideLegendClicked()" src="./icons/close.png" style="filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;" />
+                    </div>
+                    <span style="font-size: 16px;width:100%;position:absolute;left:0px;top:0px;filter:alpha(Opacity=100);-moz-opacity:1;opacity:1;top:0px;" align="center" colspan="4">
+                        图例
+                    </span>
+
+                </td>
+            </tr>
+
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#FF0000; '></div></td>
+                <td>&nbsp;4 &lt;&nbsp; = &nbsp;X &lt&nbsp; 10</td>
+                </tr><tr>
+    <td><div style='height:8px;width:8px;background-color:#FFFF00; '></div></td>
+    <td>&nbsp;3 &lt;&nbsp; =&nbsp; X &lt;&nbsp; 4</td>
+</tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#00FF00; '></div></td>
+                <td>&nbsp;2 &lt;&nbsp; =&nbsp; X &lt;&nbsp; 3</td>
+            </tr>
+            <tr>
+                <td><div style='height:8px;width:8px;background-color:#0033FF; '></div></td>
+                <td>&nbsp;1 &lt;&nbsp; =&nbsp; X &lt;&nbsp; 2</td>
+
+            </tr>
+
+        </table>
+
+    </div>
+    <!-- END 图例 -->
+    <!-- AJAX-->
+    <script>
+        var ajax = function (url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    //	if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && protocol == 'file:')) {
+                    if ((xhr.status >= 200 && xhr.status < 400)) {
+                        var response = xhr.responseText;
+                        callback(null, response);
+                    }
+                    else if (xhr.status == 511) {
+                    }
+                }
+            }
+            xhr.open('GET', url);
+            xhr.send()
+        }
+
+        function getQueryVariable(variable) {
+            
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            var ret = null;
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable)
+                {
+                    ret = pair[1];
+                    break;
+                }
+            }
+            return (ret);
+        }
+
+    </script>
+
+    <!-- END AJAX-->
+
+    <script type="text/javascript">
+        var locationPointEntity = null;
+        var GoogleMapImgLayer = null;
+        var viewer;
+        var resultEntities = null;
+        function viewerflyToLonLat(lon, lat, alt) {
+            if (locationPointEntity)
+                viewer.entities.remove(locationPointEntity);
+            locationPointEntity = new Cesium.Entity({
+                id: 'flyTmp',
+                position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                point: {
+                    pixelSize: 10,
+                    color: Cesium.Color.WHITE.withAlpha(0.9),
+                    outlineColor: Cesium.Color.WHITE.withAlpha(0.9),
+                    outlineWidth: 1,
+                    show: false
+                }
+            });
+            viewer.entities.add(locationPointEntity);
+            viewer.flyTo(locationPointEntity, {
+                offset: {
+                    heading: Cesium.Math.toRadians(0.0),
+                    pitch: Cesium.Math.toRadians(-25),
+                    range: alt
+                }
+            });
+        }
+
+        var gLookAtObj = null;
+        var gRange = null;
+
+        var g2DRect = null;
+        var g2DCenter = null;
+        
+
+        function setViewPort() {
+         //   var center = Cesium.Cartesian3.fromDegrees(113.3272449, 23.1248416);
+            var heading = Cesium.Math.toRadians(0);
+            var pitch = Cesium.Math.toRadians(-35.0);
+            ;
+            viewer.camera.lookAt(/*center*/gLookAtObj, new Cesium.HeadingPitchRange(heading, pitch, gRange));
+            viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+        }
+
+        function loadBuildings(jobId, resultType) {
+            var promiseBuilding = Cesium.GeoJsonDataSource.load('../Result/' + jobId + '/building_vector.geojson');
+            var gray = new Cesium.ColorMaterialProperty(new Cesium.Color(0.9, 0.9, 0.9, .9));
+            var glasses = new Cesium.ColorMaterialProperty(new Cesium.Color(188.0 / 255, 229.0 / 255, 235.0 / 255, .1));
+            //     var glasses = new Cesium.ColorMaterialProperty(new Cesium.Color(0, 0, 0, 0));
+            var buildingOutlineColor = new Cesium.Color(188.0 / 255, 229.0 / 255, 235.0 / 255, 0.8);
+            var dispCondition = new Cesium.DistanceDisplayCondition(0, 500);
+            promiseBuilding.then(function (dataSource) {
+                viewer.dataSources.add(dataSource);
+                viewer.dataSources.raiseToTop (dataSource);
+                dataSource.strokeWidth = 5;
+                //Get the array of entities
+                var entities = dataSource.entities.values;
+                var colorHash = {};
+                var maxY = null;
+                var minY = null;
+                var minX = null;
+                var maxX = null;
+
+
+
+                var z = null;
+                for (var i = 0; i < entities.length; i++) {
+                    //For each entity, create a random color based on the state name.
+                    //Some states have multiple entities, so we store the color in a
+                    //hash so that we use the same color for the entire state.
+                    var entity = entities[i];
+
+                    //Set the polygon material to our random color.
+                    //entity.polygon.material = color;
+                    //Remove the outlines.
+                    if (entity.properties.inRegion != null && entity.properties.inRegion == 1) {
+                        entity.polygon.outline = true;
+                        entity.polygon.fill = false;// true;
+                        entity.polygon.material = glasses;
+                        entity.polygon.outlineColor = buildingOutlineColor;
+                        entity.polygon.show = true;//i==0;
+                        entity.polygon.outlineWidth = 3;
+                        entity.polygon.closeBottom = true;
+                        entity.polygon.closeTop = false;
+                        entity.polygon.height = 1;
+                        entity.polygon.distanceDisplayCondition = dispCondition;
+                    }
+                    else {
+                        entity.polygon.outline = false;
+                        entity.polygon.fill = true;
+                        entity.polygon.material = gray;
+                        entity.polygon.show = true;//true;
+                        entity.polygon.height = 0;
+                        //entity.polygon.outlineColor = rgba(255, 255, 255, 255);
+                    }
+                    entity.polygon.zIndex = 10;
+                    //entity.model = new Cesium.ModelGraphics(
+                    //{
+                    //    colorBlendAmountEnabled: true,//false,
+                    //    colorBlendAmount: 0.1,
+                    //    colorBlendMode: Cesium.ColorBlendMode.MIX,
+                    //    shadows: Cesium.ShadowMode.DISABLED
+                    //}
+                    //);
+
+                   
+                    entity.polygon.extrudedHeight = entity.properties["height"];
+                    var dispCondition = new Cesium.DistanceDisplayCondition(0, 500);
+
+                    //  entity.polygon.closeTop = false;
+                    //  entity.polygon.closeBottom = false;
+
+                    if (maxY == null) maxY = entity.polygon.hierarchy._value.positions[0].y;
+                    if (minY == null) minY = entity.polygon.hierarchy._value.positions[0].y;
+                    if (minX == null) minX = entity.polygon.hierarchy._value.positions[0].x;
+                    if (maxX == null) maxX = entity.polygon.hierarchy._value.positions[0].x;
+                    if (z == null) z = entity.polygon.hierarchy._value.positions[0].z;
+
+
+                    for (var idx = 0; idx < entity.polygon.hierarchy._value.positions.length; idx++) {
+                        var p = entity.polygon.hierarchy._value.positions[idx];
+                        if (maxY < p.y) {
+                            maxY = p.y;
+                        }
+                        if (minY > p.y) {
+                            minY = p.y;
+                        }
+                        if (minX > p.x) {
+                            minX = p.x;
+                        }
+                        if (maxX < p.x) {
+                            maxX = p.x;
+                        }
+
+
+
+                    }
+
+                }
+
+
+
+                gRange = maxX - minX;
+                var diffY = maxY - minY;
+                if (gRange < diffY) {
+                    gRange = diffY;
+                }
+                gRange *= 1.8;
+
+                gLookAtObj = Cesium.Cartesian3.fromElements(minX + (maxX - minX) / 2, minY - diffY / 4, z);
+
+
+                // gRange /= 2;
+                setViewPort();
+               
+                //var ellipsoid = viewer.scene.globe.ellipsoid;
+                //if (ellipsoid == null) {
+                //    ellipsoid = Cesium.Ellipsoid.WGS84;
+                //}
+
+                //var mmin = Cesium.Cartesian3.fromElements(minX, minY, z);
+                //var leftBottom = ellipsoid.cartesianToCartographic(mmin);
+                //var mmax = Cesium.Cartesian3.fromElements(maxX, maxY, z);
+                //var rightTop = ellipsoid.cartesianToCartographic(mmax);
+
+                var options = {};
+
+                options.defaultResetView = Cesium.Rectangle.fromCartesianArray([
+                    Cesium.Cartesian3.fromElements(minX, minY, z),
+                    Cesium.Cartesian3.fromElements(maxX, minY, z),
+                     Cesium.Cartesian3.fromElements(maxX, maxY, z),
+                     Cesium.Cartesian3.fromElements(minX, maxY, z),
+
+
+                ]);// new Cesium.Rectangle(leftBottom.longitude, rightTop.latitude, rightTop.longitude, leftBottom.latitude);
+
+                // Cesium.Rectangle.fromDegrees(leftBottom.longitude * 180 / Math.PI, leftBottom.latitude * 180 / Math.PI, rightTop.longitude * 180 / Math.PI, rightTop.latitude * 180 / Math.PI);
+                // Only the compass will show on the map
+                //  options.enableCompass = false;
+                //  options.enableZoomControls = false;
+                //   options.enableDistanceLegend = true;
+                //   options.enableCompassOuterRing = true;
+                options.minZoom = 14;
+                options.maxZoom = 19;
+                options.enable = false;
+
+                Cesium.viewerCesiumNavigationMixin(viewer, options);
+
+              //  loadResultImages(jobId, resultType);
+                //   viewer.zoomTo(dataSource, new Cesium.HeadingPitchRange(Cesium.Math.toRadians(60.0), Cesium.Math.toRadians(-10), 500.0));
+            }).otherwise(function (error) {
+                //Display any errrors encountered while loading.
+                window.alert(error);
+            });
+        }
+
+        function loadResultImages(jobId, resultType) {
+            var promiseResult = Cesium.GeoJsonDataSource.load('../Result/' + jobId + '/' + resultType + '.json');
+            
+            promiseResult.then(function (dataSource) {
+                dataSource.fill = new Cesium.Color(1, 1, 1, 0);
+                
+                viewer.dataSources.add(dataSource);
+                viewer.dataSources.lowerToBottom(dataSource);
+                //Get the array of entities
+                var entities = dataSource.entities.values;
+                resultEntities = dataSource.entities.values;
+                var menu = document.getElementById("menu_floor");
+                var liList = [];
+                var addedLi = [];
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+
+                    entity.polygon.height = entity.properties.height;//entity.properties.height == 0 ? 0.1 : entity.properties.height;
+                    if (entity.polygon.height <1.5) {
+                        entity.polygon.height = 1;
+                    }
+                     
+                   // entity.polygon.extrudedHeight = entity.polygon.height+5;
+                    var sLiId = "id_liflr_" + Math.floor(entity.properties.height * 10);
+                   
+                    if (addedLi[sLiId] == null) {
+                        addedLi[sLiId] = 1;
+                        var li = document.createElement("li");
+                        var chkId = "id_chk_flr_" + i;
+
+                        var chkbox = document.createElement("input");
+
+                        li.height = Math.floor(entity.properties.height * 10);
+                        li.id = "id_liflr_" + li.height;
+
+                        chkbox.setAttribute("type", "checkbox");
+                        chkbox.id = chkId;
+                        chkbox.name = "chkbox_floor";
+
+                        chkbox.setAttribute("onchange", "onChkFloorClicked('" + chkId + "'," + entity.polygon.height + ")");
+                        li.appendChild(chkbox);
+
+                        if (entity.properties.height < 1) {
+                            var txt = document.createTextNode("底层");
+                            li.appendChild(txt);
+                        }
+                        else {
+                            var txt = document.createTextNode(entity.properties.height + "米");
+                            chkbox.checked = true;
+                            li.appendChild(txt);
+                        }
+                        // menu.appendChild(li);
+                        liList.push(li);
+                    }
+
+                    entity.polygon.material = new Cesium.ImageMaterialProperty({
+                        image: entity.properties.imageUrl,
+                        transparent:  true
+                    })
+
+                    //entity.model = new Cesium.ModelGraphics(
+                    //    {
+                    //        colorBlendAmountEnabled: false,
+                    //        //colorBlendAmount: 0.1,
+                    //        colorBlendMode: Cesium.ColorBlendMode.HIGHLIGHT,// REPLACE,
+                    //        shadows: Cesium.ShadowMode.DISABLED
+                    //    }
+                    //    );
+
+                    //            @see Model.colorBlendMode
+                    //*/
+                    //           var ColorBlendMode = {
+                    //               HIGHLIGHT : 0,
+                    //               REPLACE : 1,
+                    //               MIX : 2
+                    //           };
+
+                    // entity.model.colorBlendAmount = 1.0;
+                    ;
+                    //if (i!=0 && i != 3 && i != 6) {
+                    //    entity.polygon.show = false;
+                    //}
+                    entity.polygon.outline = false;
+                    entity.polygon.fill = true;
+                    entity.polygon.distanceDisplayCondition = new Cesium.DistanceDisplayCondition(0, Number.MAX_VALUE);
+
+                  //  entity.polygon.classificationType = Cesium.ClassificationType.CESIUM_3D_TILE;
+                    entity.polygon.zIndex = 2;
+
+                    if (entity.properties.height < 1.5) {
+                        
+                        
+                        entity.show =false;
+                        
+                        entity.polygon.zIndex = 0;
+
+                        var maxY = null;
+                        var minY = null;
+                        var minX = null;
+                        var maxX = null;
+                        var z = null;
+
+                        //   g2DRect = Cesium.Cartesian3.fromElements(inMinX + (inMaxX - inMinX) / 2, inMinY + (inMaxY - inMinY) / 2, z);
+                        if (maxY == null) maxY = entity.polygon.hierarchy._value.positions[0].y;
+                        if (minY == null) minY = entity.polygon.hierarchy._value.positions[0].y;
+                        if (minX == null) minX = entity.polygon.hierarchy._value.positions[0].x;
+                        if (maxX == null) maxX = entity.polygon.hierarchy._value.positions[0].x;
+                        if (z == null) z = entity.polygon.hierarchy._value.positions[0].z;
+
+
+                        for (var idx = 0; idx < entity.polygon.hierarchy._value.positions.length; idx++) {
+                            var p = entity.polygon.hierarchy._value.positions[idx];
+                            if (maxY < p.y) {
+                                maxY = p.y;
+                            }
+                            if (minY > p.y) {
+                                minY = p.y;
+                            }
+                            if (minX > p.x) {
+                                minX = p.x;
+                            }
+                            if (maxX < p.x) {
+                                maxX = p.x;
+                            }
+
+
+
+                        }
+
+
+
+                        var west;
+                        var south;
+                        var east;
+                        var north;
+                        var diffY = maxY - minY;
+                        var p1 = viewer.scene.globe.ellipsoid.cartesianToCartographic(Cesium.Cartesian3.fromElements(minX, minY + diffY / 2, z));
+                        var p2 = viewer.scene.globe.ellipsoid.cartesianToCartographic(Cesium.Cartesian3.fromElements(maxX, maxY + diffY / 2, z));
+                        west = p2.longitude;
+                        south = p2.latitude;
+                        east = p1.longitude;
+                        north = p1.latitude;
+                        g2DRect = new Cesium.Rectangle(west, south, east, north);
+
+                        g2DCenter = Cesium.Cartesian3.fromElements(maxX - (maxX - minX) / 2, maxY + diffY / 2, z);
+
+                    }
+                    //if (i == 0) {
+                    //    entity.polygon.zIndex = 100000000;
+                    //}
+                    //else {
+                    //    entity.polygon.zIndex = 100000000 - i;
+                    //}
+                    //   entity.polygon.classificationType = Cesium.ClassificationType.CESIUM_3D_TILE;
+                    //  entity.polygon.arcType = Cesium.ArcType.RHUMB;
+
+                    //   entity.polygon.granularity = Cesium.Math.DEGREES_PER_RADIAN;
+                    //Cesium.ArcType.GEODESIC
+
+                    //Cesium.ArcType.NONE
+
+                    //Cesium.ArcType.RHUMB : Number
+                    //  entity.polygon.extrudedHeight = entity.polygon.height;
+                    //  entity.polygon.closeTop = false;
+                    //   entity.polygon.closeBottom = false;
+
+                }
+
+                liList.sort(function (a, b) {
+                    return a.height - b.height;
+                });
+
+                for (var idx = 0; idx < liList.length; idx++) {
+                    menu.appendChild(liList[idx]);
+                }
+                //
+               // loadBuildings(jobId, resultType);
+            }
+            ).otherwise(function (error) {
+                //Display any errrors encountered while loading.
+                window.alert(error);
+            });
+        }
+
+        function loadResult(jobId, resultType) {
+            if (jobId==null) {
+                return ;
+            }
+               
+            loadBuildings(jobId, resultType);
+
+            loadResultImages(jobId, resultType);
+
+
+            //加载 小区
+
+
+
+
+            ajax('../Result/'+jobId+'/cell.json', function (err, respTxt) {
+
+                var baseStations = JSON.parse(respTxt);
+                var menu = document.getElementById("menu_sector");
+                for (var idx = 0; idx <  baseStations.length ; idx++) {
+                    var str = null;
+                    try{
+                        var bs = baseStations[idx];
+                        str = bs.stationId;
+                        var bottom = bs.bottom ? bs.bottom : 0;
+                        if ((bs.height - bottom) > 0) {
+                            var pos = Cesium.Cartesian3.fromDegreesArrayHeights([bs.lng, bs.lat, 0, bs.lng, bs.lat, bs.height]);
+                            var line = viewer.entities.add({
+                                name: bs.stationId,
+                                polyline: {
+                                    positions: pos,
+                                    width: 5,
+                                    material: new Cesium.PolylineGlowMaterialProperty({
+                                        glowPower: 0.3,
+                                        color: Cesium.Color.BLUE.withAlpha(0.9),
+
+                                    })
+                                }
+                            });
+                        }
+                        var diff = 0.0003 ;
+                        for (var cellIdx = 0; cellIdx < bs.cells.length; cellIdx++) {
+                            var cell = bs.cells[cellIdx];
+
+                            var left = cell.lng - diff;
+                            var right = cell.lng + diff;
+                            var top = cell.lat + diff;
+                            var bottom = cell.lat - diff;
+                            viewer.entities.add({
+                                // name: 'Green extruded polygon',
+                                polygon: {
+                                    hierarchy: Cesium.Cartesian3.fromDegreesArray([left, top,
+                                                                                    left, bottom,
+                                                                                    right, bottom,
+                                            right, top,
+                                    ]),
+                                    height: cell.height,
+                                    material: new Cesium.ImageMaterialProperty({
+                                        image: 'icons/sector.png',
+                                        transparent: true
+                                    }),
+                                    closeTop: false,
+                                    closeBottom: false,
+                                    stRotation: Cesium.Math.toRadians(cell.heading),
+                                    distanceDisplayCondition: new Cesium.DistanceDisplayCondition()
+                                }
+
+                            });
+
+                            var li = document.createElement("li");
+                            var chkId = "id_chk_sector_" + idx + "_" + cellIdx;
+
+                            var chkbox = document.createElement("input");
+                            chkbox.setAttribute("type", "checkbox");
+                            chkbox.id = chkId;
+                            chkbox.name = "chkbox_sector";
+                           
+                            chkbox.setAttribute("onchange", "onChkSectorClicked('" + chkId + "'," + cell.lng + ',' + cell.lat + ',' + cell.height + ',' + cell.heading + ',' +cell.pitch+ ")");
+                            li.appendChild(chkbox);
+
+                            
+                            var txt = document.createTextNode(cell.cellId);
+                                li.appendChild(txt);
+                            
+                            menu.appendChild(li);
+                        }
+                    }
+                    catch (e) {
+                        // alert(str);
+                        break;
+                    }
+                }
+                /*
+                viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(cell.lng, cell.lat ), //Cesium.Cartesian3.fromDegreesArrayHeights([cell.lng, cell.lat, cell.height]),
+                    billboard: {
+                        image: 'icons/sector.png', // default: undefined
+                        show: true, // default
+                        pixelOffset: new Cesium.Cartesian2(0, 0), // default: (0, 0)
+                        eyeOffset: new Cesium.Cartesian3(0.0, 0.0, 0.0), // default
+                        horizontalOrigin: Cesium.HorizontalOrigin.CENTER, // default
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM, // default: CENTER
+                        scale: 1.0, // default: 1.0
+                        heightReference: Cesium.HeightReference.RELATIVE_TO_GROUND,
+                        rotation: 0,//Cesium.Math.PI_OVER_FOUR, // default: 0.0
+                        alignedAxis: Cesium.Cartesian3.fromDegrees(0, 0, cell.height),//, // default
+                       // height: cell.height,
+                       // sizeInMeters:true
+                    }
+                });
+            }
+            ;
+    
+            *///  icons/sector.png
+                //"height": 80,
+                //           "heading": 30,
+                //           "pitch": 15,
+                //           "lng": 113.96252,
+                //           "lat": 22.59525,
+                //  bs.height ;
+                // bs.lng;
+                // bs.lat;
+
+
+
+
+
+                //  var center = Cesium.Cartesian3.fromDegrees(113.9863880, 22.5291660)//目标位置
+                //viewer.camera.lookAt(center, new Cesium.Cartesian3(0.0, -4790000.0, 4500.0));//三个数字分别是：方位角，倾角，俯角
+                //viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+
+
+                // viewer.camera.flyTo({
+                //     destination: Cesium.Cartesian3.fromDegrees(113.9863880, 22.5291660, 200), //摄像机的最终位置
+                //    duration: 4,                           //飞行所用时间
+                //    maximumHeight: 5000,                  //飞行高峰时的最大高度。
+                //    pitchAdjustHeight: 1500,               //如果摄像机的飞行高于此值，请调整俯仰航向以降低俯仰，并将地球保持在视野中
+                //    orientation: {
+                //        heading: Cesium.Math.toRadians(0),
+                //        pitch: Cesium.Math.toRadians(-45),
+                //        roll: 0.0
+                //    }
+                //});
+
+            });
+
+
+            //viewer.camera.setView({
+            //    destination: Cesium.Cartesian3.fromDegrees(113.96252, 22.59315, 120),//相机位置
+            //    orientation: {
+            //        heading: Cesium.Math.toRadians(0),
+            //        pitch: Cesium.Math.toRadians(-25),
+            //        roll: 0.0
+            //    }
+            //});
+
+          //  setViewPort();
+
+
+        }
+        
+        viewer = new Cesium.Viewer('cesiumContainer', {
+            animation: false,       //是否显示动画控件
+            homeButton: true,       //是否显示home键
+            //geocoder:false,         //是否显示地名查找控件        如果设置为true，则无法查询
+            baseLayerPicker: false, //是否显示图层选择控件
+            timeline: false,        //是否显示时间线控件
+            fullscreenButton: false/*true*/, //是否全屏显示
+            scene3DOnly: false,     //如果设置为true，则所有几何图形以3D模式绘制以节约GPU资源
+            infoBox: false,         //是否显示点击要素之后显示的信息
+            sceneModePicker: false/*true*/,  //是否显示投影方式控件  三维/二维
+            navigationInstructionsInitiallyVisible: false,
+            navigationHelpButton: false,     //是否显示帮助信息控件
+            selectionIndicator: false,       //是否显示指示器组件
+            sceneMode: Cesium.SceneMode.SCENE3D,
+            allowTextureFilterAnisotropic: true,
+            terrainShadows:Cesium.ShadowMode.DISABLED,
+            contextOptions: {
+                webgl: {
+                    alpha: true,
+                    antialias: true,
+                    preserveDrawingBuffer: true,
+                    failIfMajorPerformanceCaveat: false,
+                    depth: true,
+                    stencil: true /* true*/,
+                    premultipliedAlpha:  false ,
+                    desynchronized: true
+
+                },
+            }, 
+            targetFrameRate: 24,
+            orderIndependentTranslucency: false,
+        });
+        viewer.imageryLayers.removeAll();
+
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 150;
+    //    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 12500;
+
+    //    viewer.scene.screenSpaceCameraController._minimumZoomRate = 30000; // 设置相机缩小时的速率
+    //    viewer.scene.screenSpaceCameraController._maximumZoomRate = 30000;// 5906376272000 //设置相机放大时的速率
+ 
+        viewer.scene.screenSpaceCameraController.inertiaZoom = 0 ;
+       
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+
+        //boolean alpha = true;
+        //boolean depth = true;
+        //boolean stencil = false;
+        //boolean antialias = true;
+        //boolean premultipliedAlpha = true;
+        //boolean preserveDrawingBuffer = false;
+        //WebGLPowerPreference powerPreference = "default";
+        //boolean failIfMajorPerformanceCaveat = false;
+        //boolean desynchronized = false;
+
+
+        //添加cesium地形图层
+        /*
+         var terrainLayer = new Cesium.CesiumTerrainProvider({
+             url: "https://www.supermapol.com/iserver/services/3D-stk_terrain/rest/realspace/datas/info/data/path/", // 默认立体地表
+             // 请求照明
+            // requestVertexNormals: true,
+             // 请求水波纹效果
+            // requestWaterMask: true
+             });
+         viewer.terrainProvider = terrainLayer;
+        */
+
+        GoogleMapImgLayer = new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url: "https://mt1.google.cn/vt/lyrs=s&hl=zh-CN&x={x}&y={y}&z={z}&s=Gali"    //谷歌影像
+        }));
+        viewer.imageryLayers.add(GoogleMapImgLayer);
+
+
+        viewer._cesiumWidget._creditContainer.style.display = "none";  //	去除版权信息
+
+        viewer.scene.globe.enableLighting = false;
+
+        viewer.scene.backgroundColor = Cesium.Color.TRANSPARENT;
+        viewer.scene.globe.baseColor = Cesium.Color.BLACK;
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        
+
+
+
+        /*
+        viewer.imageryLayers.addImageryProvider(new Cesium.WebMapTileServiceImageryProvider({   //调用影响中文注记服务
+            url: "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg",
+            layer: "tdtAnnoLayer",
+            style: "default",
+            format: "image/jpeg",
+            tileMatrixSetID: "GoogleMapsCompatible",
+            show: false
+        }));
+        */
+
+
+        //加载三维模型灰模
+        /*
+            var tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset(
+                 {
+                        url: "../tile/3/0/0.json",
+                        ShadowMode:'ShadowMode.DISABLED'
+                 }
+             ));
+             viewer.scene.primitives.add(tileset);
+             tileset.readyPromise.then(function (tileset) {
+                viewer.scene.primitives.add(tileset);
+                viewer.zoomTo(tileset, new Cesium.HeadingPitchRange(0.5, -0.2, tileset.boundingSphere.radius * 1.0));
+                }
+            ).otherwise(function (error) {
+                console.log(error); }
+                );
+
+                tileset.style = new Cesium.Cesium3DTileStyle({
+            //		color : "color(rgb(255,255,255,0.9))",
+             show : true,
+             backgroundEnabled:'false',
+             anchorLineColor : 'color("blue"),
+             anchorLineEnabled :'true',
+             pointOutlineColor :'color("red"),
+                }
+                    );
+        */
+
+        //var entities = viewer.entities;
+
+
+
+        //var pics =    [    ]
+        //;
+
+
+        //for (var idx = 3; idx < pics.length; idx++) {
+        //    entities.add(pics[idx]);
+        //}
+
+
+
+
+        //AlphaMap
+
+        //image: path to image.
+        //    channel: One character string containing r, g, b, or a for selecting the desired image channel.
+        //    repeat: Object with x and y values specifying the number of times to repeat the image.
+
+        //SpecularMap
+
+        //    image: path to image.
+        //    channel: One character string containing r, g, b, or a for selecting the desired image channel.
+        //    repeat: Object with x and y values specifying the number of times to repeat the image.
+
+
+        //  entities.add(layer0Image);
+        //   entities.add(layer50Image);
+
+        var jobId = getQueryVariable("JobId");
+        var resultType = getQueryVariable("ResultType");
+
+        document.getElementById("tb_rsrp").style.display="none";
+        document.getElementById("tb_sinr").style.display = "none";
+        document.getElementById("tb_cover").style.display = "none";
+        
+
+        document.getElementById("tb_" + resultType).style.display = "";
+         
+        switch (resultType)
+        {
+            case "rsrp":
+                document.getElementById("sp_caption").innerText = "信号强度图";
+                break;
+            case "sinr":
+                document.getElementById("sp_caption").innerText = "信号质量图";
+                break;
+            case "cover":
+                document.getElementById("sp_caption").innerText = "重叠覆盖图";
+                break;
+        }
+        
+       // document.getElementById("tb_cover");
+        if (jobId != null) {
+            loadResult(jobId, resultType);
+        }
+        // 	viewerflyToLonLat(114.055,22.598,800);
+
+    </script>
+
+    <script>
+
+        function onFullScreenClicked() {
+            var el = document.documentElement;
+            var rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (typeof rfs != "undefined" && rfs) {
+                rfs.call(el);
+            };
+            return;
+
+        }
+        var gGoogleMapShowed = true;
+        function onShowGoogleMapClicked() {
+            if (GoogleMapImgLayer == null) {
+                return;
+            }
+            if (gGoogleMapShowed) {
+                gGoogleMapShowed = false;
+            }
+            else {
+                gGoogleMapShowed = true;
+            }
+
+            if (gGoogleMapShowed) {
+                GoogleMapImgLayer.show = true;
+            }
+            else {
+                GoogleMapImgLayer.show = false;
+            }
+        }
+
+        var g3DMode = true;
+        function on3DMapClicked() {
+            if (viewer == null) {
+                return;
+            }
+            if (g3DMode) {
+                g3DMode = false;
+            }
+            else {
+                g3DMode = true;
+            }
+
+            var entities = resultEntities;
+            if (g3DMode) {
+                /*
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+                    if (!entity.polygon) {
+                        continue;
+                    }
+                    if (entity.polygon.height < 1) {
+                        entity.show = false;
+                    }
+                    else {
+                        entity.show = true;
+                    }
+                }
+                */
+                viewer.scene.morphTo3D(0);
+                var utc = Cesium.JulianDate.fromDate(new Date("2017/10/25 0:00:00"));//UTC
+
+                viewer.clock.currentTime = Cesium.JulianDate.addHours(utc, 8, new Cesium.JulianDate());//北京时间=UTC+8=GMT+8
+
+                setViewPort();
+            }
+            else {
+                /*
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+                    if (!entity.polygon) {
+                        continue;
+                    }
+                    var entity = entities[i];
+                    if (entity.polygon.height < 1) {
+                        entity.show = true;
+                    }
+                    else {
+                        entity.show = false;
+                    }
+                }
+                */
+               
+                //  viewer.zoomTo(g2DRect, new Cesium.HeadingPitchRange(Cesium.Math.toRadians(0), Cesium.Math.toRadians(-90), 1500.0));
+                var heading = Cesium.Math.toRadians(180);
+                var pitch = Cesium.Math.toRadians(-90.0);
+                ;
+                
+                //viewer.scene.morphTo2D(3);
+                viewer.camera.lookAt(/*center*/g2DCenter, new Cesium.HeadingPitchRange(heading, pitch,  gRange  / 1.8 ));
+                  viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+
+                  var utc = Cesium.JulianDate.fromDate(new Date("2017/10/25 4:00:00"));//UTC
+
+                  viewer.clock.currentTime = Cesium.JulianDate.addHours(utc, 8, new Cesium.JulianDate());//北京时间=UTC+8=GMT+8
+
+
+             //     viewer.camera.setView({ destination: g2DRect });
+
+                 
+            }
+        }
+
+        function onFloorClicked() {
+             
+            if (document.getElementById("div_floor").style.display == 'none') {
+                document.getElementById("div_floor").style.display = 'block';
+            }
+            else {
+                document.getElementById("div_floor").style.display = 'none';
+            }
+        }
+          
+
+        function onChkFloorClicked(chkid ,h) {
+            var entities = resultEntities;
+            var chkbox = document.getElementById(chkid);
+            
+            var chked = chkbox.checked;
+            
+            for (var i = 0; i < entities.length; i++) {
+                var entity = entities[i];
+                if (!entity.polygon) {
+                    continue;
+                }
+                if (entity.polygon.height == h) {
+                    entity.show = chked;
+                }
+            }
+        }
+
+        function onChkFloorAllChecked() {
+            var entities = resultEntities;
+            var chked = document.getElementById("chk_floor_all").checked;
+            for (var i = 0; i < entities.length; i++) {
+                var entity = entities[i];
+                if (!entity.polygon) {
+                    continue;
+                }
+               entity.show = chked;
+            }
+
+            var chks = document.getElementsByName("chkbox_floor");
+            for (var idx = 0; idx < chks.length; idx++) {
+                chks[idx].checked = chked;
+            }
+
+        }
+
+        function onHideLegendClicked() {
+            if (document.getElementById("legend").style.display == 'none') {
+                document.getElementById("legend").style.display = 'block';
+            }
+            else {
+                document.getElementById("legend").style.display = 'none';
+            }
+        }
+
+        function onEyeClicked() {
+            var divSector = document.getElementById("div_sector");
+            if (divSector.style.display == "none") {
+                divSector.style.display = "block";
+            }
+            else {
+                divSector.style.display = "none";
+            }
+            
+        }
+
+        function onChkSectorClicked(chkId, lng, lat, height, heading, pitch) {
+            
+            var chks = document.getElementsByName("chkbox_sector");
+            var chked =false;
+            for (var idx = 0; idx < chks.length; idx++) {
+                if (chks[idx].id == chkId)
+                {
+                    chked = chks[idx].checked;
+                }
+                else {
+                    chks[idx].checked = false;
+                }
+            }
+
+            if (chked) {
+              //   var center = Cesium.Cartesian3.fromDegrees(lng, lat);
+                //var h = Cesium.Math.toRadians(heading);
+                //var p = Cesium.Math.toRadians(90 - pitch);
+                //;
+                //viewer.camera.lookAt(center, new Cesium.HeadingPitchRange(h, p, 1000));
+
+                viewer.camera.setView({
+                    destination: Cesium.Cartesian3.fromDegrees(lng, lat, height),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(heading),
+                        pitch: Cesium.Math.toRadians(-pitch ),
+                        roll: Cesium.Math.toRadians(0)
+                    }
+                } );
+
+            }
+            else {
+                setViewPort();
+            }
+        }
+
+    </script>
+</body>
+</html>
