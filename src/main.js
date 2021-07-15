@@ -145,14 +145,18 @@ axios.interceptors.response.use(
 
 // 判断路由拦截;
 router.beforeEach((to, from, next) => {
-    console.log('路由拦截====》', 'to===>',to, 'to.query.q', to.query, 'from===>',from)
+    console.log('路由拦截====》', 'to===>',to, 'to.query.q', to.query.q, 'from===>',from)
     let token = ''
-    if(to.path == '/nokia') {
+    if(to.path == '/nokia/' || to.path == '/nokia') {
         let token = '16260783b0ed8b2b27a268abd4bdf97eacea867857503'.slice(6, 38)
         // let token = to.query.p.slice(6, 33)
         console.log('getToken=====>', token)
-        if(to.query.q !== undefined && to.query.q.slice(6, 38) === '83b0ed8b2b27a268abd4bdf97eacea86') {
+        if(to.query.q !== undefined  && to.query.q.slice(6, 38) === '83b0ed8b2b27a268abd4bdf97eacea86') {
             sessionStorage.setItem('token', '123456789kkkk')
+        }
+    }else {
+        if(sessionStorage.getItem('token') === '123456789kkkk') {
+            sessionStorage.removeItem('token')
         }
     }
     console.log('token======>',  sessionStorage.getItem('token'))
@@ -163,15 +167,11 @@ router.beforeEach((to, from, next) => {
         }else {
             // 未登录,跳转到登陆页面
             next({
-                path: '/home'
+                path: '/login'
             })
         }
     } else {
-        if (sessionStorage.getItem('token')) {
-            next('/home')
-        } else {
-            next()
-        }
+        next()
     }
 })
 

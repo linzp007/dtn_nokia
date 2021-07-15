@@ -239,8 +239,8 @@
                         </el-select>
                         <el-button type="info" plain size="mini" @click="clearImg" class="quyu" v-if="tabType == '2D'" v-has="'clear'">区域结果清除</el-button>
                         <el-checkbox v-if="tabType == '2D'" border size="mini" class="wxMap" @change="invokeHtmlMethod" v-model="checkState" v-has="'gisMap'">卫星地图</el-checkbox>
-                        <!--mapProcess -->
-                        <!-- <el-button type="info" v-if="tabType == '2D'" @click="addCellFun" plain size="mini" class="addCell">新增小区</el-button>
+                        <!--mapProcess
+                        <el-button type="info" v-if="tabType == '2D'" @click="addCellFun" plain size="mini" class="addCell">显示</el-button>
                         <el-button type="info" v-if="tabType == '2D'" @click="showDataFun" plain size="mini" class="showDataFun">数据展示</el-button>
                         <el-button type="info" v-if="tabType == '2D'" @click="converPolygon" plain size="mini" class="converPolygon">弱覆盖栅格渲染</el-button>
                         <mapProcess ref="mapProcessFuc"></mapProcess>
@@ -248,6 +248,7 @@
                         -- 经纬度定位 搜索 --
                         <el-input type="info" v-if="tabType == '2D'" v-model="searchtext" plain size="mini" class="searchLatLngText"></el-input>
                         <el-button type="info" v-if="tabType == '2D'" @click="searchLatLngPosition" plain size="mini" class="searchLatLng">搜索</el-button> -->
+                        <el-button type="info" plain size="mini" v-has="'dispaly'" class="addCell" @click="showTable" style="margin-left: 0px">显示</el-button>
                     </div>
                     <div class="tabce">
                         <button @click="tabTypeClick" size="mini" class="tabButton">
@@ -369,16 +370,8 @@
                             <el-table-column prop="calculateregion" label="制式" show-overflow-tooltip>
                                 <template slot-scope="scope">
                                     <span v-if="!scope.row.cellType"></span>
-                                    <span v-if="scope.row.cellType == '1'">4G</span>
-                                    <span v-if="scope.row.cellType == '2'">5G</span>
-                                </template>
-                            </el-table-column>
-
-                            <el-table-column prop="calculateregion" label="阶段" show-overflow-tooltip>
-                                <template slot-scope="scope">
-                                    <span v-if="!scope.row.calculateregion"></span>
-                                    <span v-if="scope.row.calculateregion == '1'">现网</span>
-                                    <span v-if="scope.row.calculateregion == '2'">现网+规划</span>
+                                    <span v-if="scope.row.cellType == 'LTE'">4G</span>
+                                    <span v-if="scope.row.cellType == 'NR'">5G</span>
                                 </template>
                             </el-table-column>
                             <el-table-column v-if="!(isTableData2ColNr700Show ||isTableData2ColNrDShow )" prop="roadLevel" label="道路级别" key="roadLevel" show-overflow-tooltip>
@@ -904,7 +897,8 @@ export default {
                 }
             ],
             searchZsType: '',   //搜索制式参数
-            isThCity: false
+            isThCity: false,
+            showBox: null
         }
     },
     created() {
@@ -921,6 +915,10 @@ export default {
         }
     },
     mounted() {
+        //vue定义方法，gis在html ，js里进行调用
+        window['vueDefinedMyProp'] = receiveParams => {
+            this.receiveParamsFromHtml(receiveParams)
+        }
         let passToken = this.$md5('123456789kkkk')
         console.log('token====>', passToken)
         let cont = new Date().getTime().toString()
@@ -936,9 +934,13 @@ export default {
         // var headers = req.getAllResponseHeaders().toLowerCase()
         // var date = req.getResponseHeader('date')
         // console.log('this.$router====>', headers, date, typeof(headers))
-        this.token = this.$route.query
-        console.log('token========nokia==========>', this.token)
-        this.showTable(this.$route.query.taskId, this.$route.query.polygonIds)
+        this.showBox = this.$route.query
+        console.log('token========nokia33==========>', this.showBox)
+        // this.showTable(this.$route.query.taskId, this.$route.query.polygonIds)
+        
+        this.timer = setInterval(() => {
+            this.showTable()
+        }, 3000)
 
         this.dragControllerDiv() //拖拽功能调用
         // 查询4/5门限信息
@@ -952,6 +954,7 @@ export default {
             })
         })
     },
+
     //销毁组件前进行定时器清除
     beforeDestroy() {
         clearInterval(this.timer)
@@ -1833,9 +1836,8 @@ export default {
             //
         },
         //显示接口
-        showTable(id, polygonIds) {
+        showTable() {
             // let ids = this.multipleSelection
-            let ids = id
             // 判断如果没有勾选区域，则区域结果为空，清除区域多边形，并给出提示
             // if (ids == []) {
             //     this.$message({
@@ -1867,6 +1869,9 @@ export default {
             //     })
             //     return
             // }
+            let ids = this.showBox.taskId.split(',')
+            let polygonIds = this.showBox.polygonIds.split(',')
+            console.log('ids和polygonIds============>', ids, polygonIds)
             this.tabType = '2D'
             this.sendMapUrl
             const secen = this.secenList1 ? this.secenList1.sort().toString().replace(/,/g, '-') : ''
@@ -1878,8 +1883,8 @@ export default {
                 roadLevel: ''
             }
             const token = sessionStorage.getItem('token') //缓存获取token
-            console.log('cont----box=====>',this.polygonIds, zb)
-            window.frames['dtnzdMap'].show_polygon(this.polygonIds, token) //将token和参数传个gis显示接口
+            console.log('cont----box=====>',polygonIds, zb)
+            window.frames['dtnzdMap'].show_polygon(polygonIds, token) //将token和参数传个gis显示接口
             window.frames['dtnzdMap'].target_select(zb.targetId) //筛选指标
             window.frames['dtnzdMap'].xsyc()
             window.frames['dtnzdMap'].resultsByIndexType(zb) //指标结果
@@ -1888,6 +1893,13 @@ export default {
             this.$axios.get(this.httpUrl + `/tasks/regionResult?ids=${ids}&calculateregion=${secen}&roadLevel=${dlRoad}`).then(data => {
                 // this.tableData2 = data.data; //获取区域结果列表
                 // 处理结果中的 制式频段是单选，且 是NR  700；(NR D  互斥) 增加两列显示，道路级别一列不显示；todo 优化下属判断为函数??
+                console.log('end======================>',data.status)
+                if(data.status == 200) {
+                    console.log('嘻嘻哈哈')
+                    clearInterval(this.timer)
+                    this.timer = null
+                    console.log('this.timer============>', this.timer)
+                }
                 let isNrD = [];let isNr700 = [];
                 let dataListlength = data.data.list.length
                 let dataList = data.data.list;
@@ -2157,23 +2169,24 @@ export default {
         
         //选择指标
         handelZbChange(noId) {
+            console.log('选择指标', noId, this.dbIds)
             // 判断选择指标需要先选择区域
-            if (this.dbIds.length == 0) {
-                this.$message({
-                    message: '请选择区域',
-                    type: 'warning',
-                    center: true,
-                    duration: 30000,
-                    showClose: true
-                })
-                return
-            }
+            // if (this.dbIds.length == 0) {
+            //     this.$message({
+            //         message: '请选择区域',
+            //         type: 'warning',
+            //         center: true,
+            //         duration: 30000,
+            //         showClose: true
+            //     })
+            //     return
+            // }
             this.noId == this.noId
             const secen = this.secenList1 ? this.secenList1.sort().toString().replace(/,/g, '-') : ''
             const dlRoad = this.rodeList1 ? this.rodeList1.sort().toString().replace(/,/g, '-') : ''
             const zb = {
                 targetId: this.noId,
-                taskId: this.dbIds,
+                taskId: this.showBox.taskId,
                 calculateregion: secen,
                 roadLevel: dlRoad
             }
@@ -2439,7 +2452,6 @@ export default {
                     })
             }
         },
-
         // 区域结果清除
         clearImg() {
             window.frames['dtnzdMap'].clear_polygon()
@@ -3029,7 +3041,7 @@ export default {
 .wxMap {
     position: absolute;
     top: 16px;
-    left: 345px;
+    left: 275px;
     opacity: 0.9;
     width: 100px;
     height: 28px;
@@ -3091,7 +3103,7 @@ export default {
     width: 90px;
     position: absolute;
     top: 16px;
-    left: 456px;
+    left: 380px;
     opacity: 0.9;
 }
 .showDataFun {
