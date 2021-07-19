@@ -369,12 +369,19 @@
                             </el-table-column>
                             <el-table-column prop="calculateregion" label="制式" show-overflow-tooltip>
                                 <template slot-scope="scope">
-                                    <span v-if="!scope.row.cellType"></span>
-                                    <span v-if="scope.row.cellType == 'LTE'">4G</span>
-                                    <span v-if="scope.row.cellType == 'NR'">5G</span>
+                                    <span v-if="!scope.row.taskType"></span>
+                                    <span v-if="scope.row.taskType == 'LTE'">4G</span>
+                                    <span v-if="scope.row.taskType == 'NR'">5G</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column v-if="!(isTableData2ColNr700Show ||isTableData2ColNrDShow )" prop="roadLevel" label="道路级别" key="roadLevel" show-overflow-tooltip>
+                            <el-table-column prop="calculateregion" label="阶段" show-overflow-tooltip>
+                                <template slot-scope="scope">
+                                    <span v-if="!scope.row.stage"></span>
+                                    <span v-if="scope.row.stage == 9">规划</span>
+                                    <span v-else>现网+规划</span>
+                                </template>
+                            </el-table-column>
+                            <!-- <el-table-column v-if="!(isTableData2ColNr700Show ||isTableData2ColNrDShow )" prop="roadLevel" label="道路级别" key="roadLevel" show-overflow-tooltip>
                                 <template slot-scope="scope">
                                     <span v-if="!scope.row.roadLevel"></span>
                                     <span v-if="scope.row.roadLevel == '1'">1级</span>
@@ -383,7 +390,7 @@
                                     <span v-if="scope.row.roadLevel == '4'">4级</span>
                                     <span v-if="scope.row.roadLevel == '5'">5级</span>
                                 </template>
-                            </el-table-column>
+                            </el-table-column> -->
                             <el-table-column prop="averRsrp" label="平均RSRP(dBm)" key="rsrpCover93" show-overflow-tooltip></el-table-column>
                             <el-table-column prop="rsrpCover93" label="RSRP覆盖率(>=-93dBm)" show-overflow-tooltip>
                                 <template slot-scope="scope">
