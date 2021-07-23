@@ -927,13 +927,13 @@ export default {
             this.receiveParamsFromHtml(receiveParams)
         }
         let passToken = this.$md5('123456789kkkk')
-        console.log('token====>', passToken)
+        // console.log('token====>', passToken)
         let cont = new Date().getTime().toString()
         let time1 = cont.slice(0, 6)
         let time2 = cont.slice(6, 13)
-        console.log('contbox-============>', time1, time2)
+        // console.log('contbox-============>', time1, time2)
         let tokenStr = time1 + passToken + time2
-        console.log('md5=====cont=====>', cont, tokenStr)
+        // console.log('md5=====cont=====>', cont, tokenStr)
         
         // var req = new XMLHttpRequest()
         // req.open('GET', document.location, false)
@@ -942,7 +942,7 @@ export default {
         // var date = req.getResponseHeader('date')
         // console.log('this.$router====>', headers, date, typeof(headers))
         this.showBox = this.$route.query
-        console.log('token========nokia33==========>', this.showBox)
+        // console.log('token========nokia33==========>', this.showBox)
         // this.showTable(this.$route.query.taskId, this.$route.query.polygonIds)
         
         this.timer = setInterval(() => {
@@ -967,7 +967,7 @@ export default {
         clearInterval(this.timer)
         this.timer = null
         sessionStorage.removeItem('token')
-        console.log('destory====>', sessionStorage.getItem('token'))
+        // console.log('destory====>', sessionStorage.getItem('token'))
     },
     //销毁组件进行定时器清除
     destroyed() {
@@ -1248,7 +1248,6 @@ export default {
          * @since 20/06/18
          */
         changeBlackSelect(val) {
-            console.log('select===>', val)
             let findID = ''
             this.findeList.map((item, index) => {
                 if (item.areaName == val) {
@@ -1287,7 +1286,6 @@ export default {
 
                         this.lineChartXTime.push(item.createDate)
                     })
-                    console.log(this.lineChartXTime, 'this.lineChartXTime')
 
                     this.initFirstLine()
                 }
@@ -1462,7 +1460,6 @@ export default {
                 this.$axios
                     .post(this.httpUrl + '/saveTimingSimulation', fzPrame)
                     .then(res => {
-                        console.log(res, 'res')
                         if (res.status == '200') {
                             this.$message({
                                 type: 'success',
@@ -1652,7 +1649,6 @@ export default {
         },
         //选择站址方法
         zzChange() {
-            console.log('jobId--------:' + this.taskIds)
             //判断是否选择区域
             if (this.dbIds.length == 0) {
                 this.$message({
@@ -1702,7 +1698,6 @@ export default {
         },
         //多选筛选
         handleSelectionChange(val) {
-            console.log('select====>', val)
             let type = []
             for(let i in val) {
                 type.push(val[i].taskType)
@@ -1710,8 +1705,6 @@ export default {
             this.typeBox = type.sort()
             if(this.typeBox.length == 1) {
                 this.typeBox.map((item, index) => {
-                    console.log('checklist====>', item)
-                    console.log('this.findStandardSystemList', this.findStandardSystemList)
                     let findBox = []
                     if(item == 'LTE') {
                         for(let i in this.findStandardSystemList) {
@@ -1720,7 +1713,6 @@ export default {
                             }
                         }
                         this.selctList = findBox
-                        console.log('selctList==444=>', this.selctList)
                     }else if(item == 'NR') {
                         for(let i in this.findStandardSystemList) {
                             if(this.findStandardSystemList[i].stanSysType == 'NR'){
@@ -1728,14 +1720,12 @@ export default {
                             }
                         }
                         this.selctList = findBox
-                        console.log('selctList==555=>', this.selctList)
                     }else{
                         this.selctList = this.findStandardSystemList
                         console.log('selctList==null=>', this.selctList)
                     }
                 })
                 this.typeBox.push(val[0].taskType)
-                console.log('push=111==>', type, this.typeBox)
             }else {
                 this.selctList = this.findStandardSystemList
             }
@@ -1752,7 +1742,6 @@ export default {
             this.checkList = []
             if (val.length > 0) {
                 val.map((item, index) => {
-                    console.log(item, '我是要修改的city和province,item', sessionStorage.getItem('user'))
                     this.checkList.push({
                         city: item.city, //city :'bj'
                         // city: 'gz',  //city :'bj'
@@ -1771,7 +1760,6 @@ export default {
             let praram = this.multipleSelection.replace(/,/g, ',')
             // let user = sessionStorage.getItem('user')
             let user = sessionStorage.getItem('user')
-            console.log('deleteTable', user, this.checkList.createUserCode)
             //判断是否勾选区域
             if (this.multipleSelection == []) {
                 this.$message({
@@ -1878,7 +1866,6 @@ export default {
             // }
             let ids = this.showBox.taskId.split(',')
             let polygonIds = this.showBox.polygonIds.split(',')
-            console.log('ids和polygonIds============>', ids, polygonIds)
             this.tabType = '2D'
             this.sendMapUrl
             const secen = this.secenList1 ? this.secenList1.sort().toString().replace(/,/g, '-') : ''
@@ -1890,7 +1877,7 @@ export default {
                 roadLevel: ''
             }
             const token = sessionStorage.getItem('token') //缓存获取token
-            console.log('cont----box=====>',polygonIds, zb)
+            // console.log('cont----box=====>',polygonIds, zb)
             window.frames['dtnzdMap'].show_polygon(polygonIds, token) //将token和参数传个gis显示接口
             window.frames['dtnzdMap'].target_select(zb.targetId) //筛选指标
             window.frames['dtnzdMap'].xsyc()
@@ -1900,12 +1887,11 @@ export default {
             this.$axios.get(this.httpUrl + `/tasks/regionResult?ids=${ids}&calculateregion=${secen}&roadLevel=${dlRoad}`).then(data => {
                 // this.tableData2 = data.data; //获取区域结果列表
                 // 处理结果中的 制式频段是单选，且 是NR  700；(NR D  互斥) 增加两列显示，道路级别一列不显示；todo 优化下属判断为函数??
-                console.log('end======================>',data.status)
+                // console.log('end======================>',data.status)
                 if(data.status == 200) {
-                    console.log('嘻嘻哈哈')
                     clearInterval(this.timer)
                     this.timer = null
-                    console.log('this.timer============>', this.timer)
+                    // console.log('this.timer============>', this.timer)
                 }
                 let isNrD = [];let isNr700 = [];
                 let dataListlength = data.data.list.length
@@ -2133,7 +2119,6 @@ export default {
         },
         //查询接口
         seachButton() {
-            console.log('search===>', this.searchZsType)
             let ZsType = ''
             switch(this.searchZsType) {
                 case '':
@@ -2156,7 +2141,6 @@ export default {
                     method: 'get',
                     url: this.httpUrl + '/adminiRegionCode'
                 }).then(data => {
-                    console.log('list-=====>', data)
                     this.allCity = data.data
                     this.tableData.map((item, i) => {
                         this.allCity.map(item1 => {
@@ -2176,7 +2160,6 @@ export default {
         
         //选择指标
         handelZbChange(noId) {
-            console.log('选择指标', noId, this.dbIds)
             // 判断选择指标需要先选择区域
             // if (this.dbIds.length == 0) {
             //     this.$message({
@@ -2337,7 +2320,6 @@ export default {
 
                 let arr = []
                 let timerId = this.polygonIds.toString()
-                console.log(timerId)
                 //定时器，刷新列表仿真状态
                 this.timer = setInterval(() => {
                     this.$axios({
@@ -2426,7 +2408,6 @@ export default {
                     engineParamCorrect: this.engineParamCorrect
                 }
                 
-                console.log('仿真===》', fzPrame)
                 this.$axios({
                     method: 'post',
                     url: this.httpUrl + `/startJob`,

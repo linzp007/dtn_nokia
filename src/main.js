@@ -137,7 +137,7 @@ axios.interceptors.response.use(
             sessionStorage.removeItem('token') //清除token缓存
             sessionStorage.removeItem('user') // 清除用户ID
             localStorage.removeItem('arr')
-            router.push('/nokia')
+            router.push('/external')
         }
         return Promise.reject(error)
     }
@@ -145,12 +145,12 @@ axios.interceptors.response.use(
 
 // 判断路由拦截;
 router.beforeEach((to, from, next) => {
-    console.log('路由拦截====》', 'to===>',to, 'to.query.q', to.query.q, 'from===>',from)
+    // console.log('路由拦截====》', 'to===>',to, 'to.query.q', to.query.q, 'from===>',from)
     let token = ''
-    if(to.path == '/nokia/' || to.path == '/nokia') {
+    if(to.path == '/external/' || to.path == '/external') {
         let token = '16260783b0ed8b2b27a268abd4bdf97eacea867857503'.slice(6, 38)
         // let token = to.query.p.slice(6, 33)
-        console.log('getToken=====>', token)
+        // console.log('getToken=====>', token)
         if(to.query.q !== undefined  && to.query.q.slice(6, 38) === '83b0ed8b2b27a268abd4bdf97eacea86') {
             sessionStorage.setItem('token', '123456789kkkk')
         }
@@ -159,7 +159,7 @@ router.beforeEach((to, from, next) => {
             sessionStorage.removeItem('token')
         }
     }
-    console.log('token======>',  sessionStorage.getItem('token'))
+    // console.log('token======>',  sessionStorage.getItem('token'))
     if (to.meta.requireAuth) {
         if (sessionStorage.getItem('token')) {
             // 判断本地是否存在token

@@ -12,13 +12,13 @@ export default new Router({
   routes: [
     {
       path: "/",
-      redirect: "/nokia"
+      redirect: "/external"
     },
     {
       meta: {
         requireAuth: true // ���ô���������ҳ��ǰ�ж��Ƿ���Ҫ��½
       },
-      path: "/nokia",
+      path: "/external",
       component: Nokia
     },
     
